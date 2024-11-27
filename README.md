@@ -26,19 +26,8 @@ By mastering these technologies, you'll be equipped to design, implement, and ma
 
 By the end of this module, you will be able to:
 
-1. **Set Up a Development Environment Using Docker Compose for Web Applications and Databases.**
-2. **Develop a REST API using Python and FastAPI Integrated with a Relational Database.**
-3. **Understand and Compare Relational Database Systems: PostgreSQL vs. MySQL.**
-4. **Write and Optimize SQL Queries for Data Manipulation and Retrieval.**
-5. **Interact with Databases Using SQLAlchemy ORM in Python Applications.**
-6. **Implement Professional Terminology and Concepts Related to Database Management and Web Development.**
-7. **Configure and Manage Database Services Using pgAdmin.**
-8. **Leverage Docker for Containerizing Web Applications and Databases to Ensure Consistent Development Environments.**
-9. **Apply Best Practices for Database Design, Query Optimization, and Data Integrity.**
-10. **Utilize Git for Version Control and Collaborative Development.**
-11. **Set Up GitHub Actions for Continuous Integration (CI), Automating the Execution of Tests to Ensure Software Quality.**
-12. **Seed Databases with Realistic Data Using Python Scripts and Faker.**
-13. **Establish One-to-Many Relationships Between Database Tables.**
+- CLO 11: Integrate Python programs with SQL databases to create and manipulate data.
+
 
 ---
 
