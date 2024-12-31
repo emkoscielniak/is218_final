@@ -64,7 +64,6 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
-          ignorefile: .trivyignore
   deploy:
     needs: security
     if: github.ref == 'refs/heads/main'
