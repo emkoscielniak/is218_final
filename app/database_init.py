@@ -1,5 +1,5 @@
-from app.database import engine
-from app.models.user import Base
+from app.database import engine, Base
+from app.models.user import User  # Import User to register it with Base
 
 def init_db():
     Base.metadata.create_all(bind=engine)

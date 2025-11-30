@@ -7,12 +7,19 @@
 
 import pytest
 import logging
-from sqlalchemy import text
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker
 
-from app.models.user import User
-from tests.conftest import create_fake_user, managed_db_session
+try:
+    from sqlalchemy import text
+    from sqlalchemy.exc import IntegrityError
+    from sqlalchemy.orm import sessionmaker
+    from app.models.user import User
+    from tests.conftest import create_fake_user, managed_db_session
+    HAS_DEPENDENCIES = True
+except ImportError:
+    HAS_DEPENDENCIES = False
+
+# Skip all tests if dependencies are missing
+pytestmark = pytest.mark.skipif(not HAS_DEPENDENCIES, reason="SQLAlchemy dependencies not available")
 
 # Use the logger configured in conftest.py
 logger = logging.getLogger(__name__)

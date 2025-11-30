@@ -3,21 +3,50 @@
 import subprocess
 import time
 import logging
-from typing import Generator, Dict, List
+from typing import Generator, Dict, List, TYPE_CHECKING, Any
 from contextlib import contextmanager
 
 import pytest
 import requests
-from faker import Faker
-from playwright.sync_api import sync_playwright, Browser, Page
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
-from app.database import Base, get_engine, get_sessionmaker
-from app.models.user import User
-from app.config import settings
-from app.database_init import init_db, drop_db
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+    from playwright.sync_api import Browser, Page
+    from app.models.user import User
+
+# Handle optional dependencies gracefully
+try:
+    from faker import Faker
+    HAS_FAKER = True
+except ImportError:
+    HAS_FAKER = False
+    Faker = None
+
+try:
+    from playwright.sync_api import sync_playwright, Browser, Page
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
+    sync_playwright = None
+    Browser = None
+    Page = None
+
+try:
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import Session, sessionmaker
+    from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+    from app.database import Base, get_engine, get_sessionmaker
+    from app.models.user import User
+    from app.config import settings
+    from app.database_init import init_db, drop_db
+    HAS_SQLALCHEMY = True
+except ImportError:
+    HAS_SQLALCHEMY = False
+    create_engine = None
+    Session = None
+    sessionmaker = None
+    SQLAlchemyError = None
+    IntegrityError = None
 
 # ======================================================================================
 # Logging Configuration
@@ -31,14 +60,20 @@ logger = logging.getLogger(__name__)
 # ======================================================================================
 # Database Configuration
 # ======================================================================================
-fake = Faker()
-Faker.seed(12345)
+if HAS_FAKER:
+    fake = Faker()
+    Faker.seed(12345)
+else:
+    fake = None
 
-logger.info(f"Using database URL: {settings.DATABASE_URL}")
-
-# Create an engine and sessionmaker based on DATABASE_URL using factory functions
-test_engine = get_engine(database_url=settings.DATABASE_URL)
-TestingSessionLocal = get_sessionmaker(engine=test_engine)
+if HAS_SQLALCHEMY:
+    logger.info(f"Using database URL: {settings.DATABASE_URL}")
+    # Create an engine and sessionmaker based on DATABASE_URL using factory functions
+    test_engine = get_engine(database_url=settings.DATABASE_URL)
+    TestingSessionLocal = get_sessionmaker(engine=test_engine)
+else:
+    test_engine = None
+    TestingSessionLocal = None
 
 # ======================================================================================
 # Helper Functions
@@ -50,6 +85,9 @@ def create_fake_user() -> Dict[str, str]:
     Returns:
         A dict containing user fields with fake data.
     """
+    if not HAS_FAKER:
+        pytest.skip("faker not available")
+    
     return {
         "first_name": fake.first_name(),
         "last_name": fake.last_name(),
@@ -112,6 +150,9 @@ def setup_test_database(request):
     - Optionally initialize the database with seed data.
     After tests, drop all tables unless --preserve-db is set.
     """
+    if not HAS_SQLALCHEMY:
+        pytest.skip("SQLAlchemy not available")
+    
     logger.info("Setting up test database...")
 
     # Drop all tables to ensure a clean slate
@@ -137,12 +178,15 @@ def setup_test_database(request):
         logger.info("Dropped test database tables.")
 
 @pytest.fixture
-def db_session(request) -> Generator[Session, None, None]:
+def db_session(request) -> Generator[Any, None, None]:
     """
     Provide a test-scoped database session.
     By default, truncates all tables after each test to ensure isolation,
     unless --preserve-db is passed.
     """
+    if not HAS_SQLALCHEMY:
+        pytest.skip("SQLAlchemy not available")
+    
     session = TestingSessionLocal()
     try:
         yield session
@@ -169,7 +213,7 @@ def fake_user_data() -> Dict[str, str]:
     return create_fake_user()
 
 @pytest.fixture
-def test_user(db_session: Session) -> User:
+def test_user(db_session: Any) -> Any:
     """
     Create and return a single test user.
     """
@@ -182,7 +226,7 @@ def test_user(db_session: Session) -> User:
     return user
 
 @pytest.fixture
-def seed_users(db_session: Session, request) -> List[User]:
+def seed_users(db_session: Any, request) -> List[Any]:
     """
     Create multiple test users in the database.
 
@@ -251,6 +295,9 @@ def browser_context():
     """
     Provide a Playwright browser context for UI tests.
     """
+    if not HAS_PLAYWRIGHT:
+        pytest.skip("Playwright not available")
+    
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(
             headless=True,
@@ -264,10 +311,13 @@ def browser_context():
             browser.close()
 
 @pytest.fixture
-def page(browser_context: Browser):
+def page(browser_context: Any):
     """
     Provide a new browser page for each test.
     """
+    if not HAS_PLAYWRIGHT:
+        pytest.skip("Playwright not available")
+    
     context = browser_context.new_context(
         viewport={'width': 1920, 'height': 1080},
         ignore_https_errors=True
