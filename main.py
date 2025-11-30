@@ -10,9 +10,12 @@ from sqlalchemy.orm import Session
 from app.operations import add, subtract, multiply, divide  # Ensure correct import path
 from app.database import get_db
 from app.models.user import User
+from app.models.calculation import Calculation
 from app.schemas.base import UserCreate, UserRead
 from app.schemas.user import UserResponse, Token, UserLogin
+from app.schemas.calculation import CalculationCreate, CalculationRead, CalculationUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
+from typing import List
 import uvicorn
 import logging
 
