@@ -1,15 +1,17 @@
-# FastAPI Calculator with User Management & CRUD Operations
+# FastAPI Calculator with JWT Authentication & Frontend
 
-A comprehensive FastAPI application featuring user authentication, calculation CRUD operations, and secure password management. Built with SQLAlchemy ORM, Pydantic validation, and deployed via Docker Hub with complete CI/CD pipeline.
+A comprehensive FastAPI application featuring JWT-based user authentication, front-end registration and login pages, and calculator functionality. Built with SQLAlchemy ORM, Pydantic validation, client-side JavaScript validation, and deployed via Docker Hub with complete CI/CD pipeline including Playwright E2E testing.
 
 ## 🎯 Features
 
-- **User Management**: Complete user registration and login system with JWT authentication
-- **Calculation CRUD**: Full BREAD operations (Browse, Read, Edit, Add, Delete) for calculations
-- **Secure Authentication**: JWT-based authentication with bcrypt password hashing
-- **Input Validation**: Comprehensive Pydantic validation with custom password requirements
+- **JWT Authentication**: Secure user registration and login with JWT tokens
+- **Frontend Pages**: Complete HTML pages for registration and login with client-side validation
+- **Password Security**: Bcrypt hashing with complex password requirements
+- **Client-side Validation**: Email format validation, password strength checks, and form validation
+- **Token Management**: JWT token storage in localStorage and automatic authentication
+- **Calculation Operations**: Basic arithmetic operations (add, subtract, multiply, divide)
 - **Database Integration**: SQLAlchemy ORM with PostgreSQL support
-- **Comprehensive Testing**: Unit and integration tests with pytest
+- **E2E Testing**: Comprehensive Playwright tests for authentication flows
 - **CI/CD Pipeline**: Automated testing, security scanning, and Docker Hub deployment
 - **OpenAPI Documentation**: Interactive API documentation with Swagger UI
 
@@ -19,7 +21,7 @@ A comprehensive FastAPI application featuring user authentication, calculation C
 
 ```bash
 # Pull and run the latest image from Docker Hub
-docker run -p 8000:8000 emkoscielniak/module12_is218:latest
+docker run -p 8000:8000 emkoscielniak/module13_is218:latest
 ```
 
 ### Local Development
@@ -27,7 +29,7 @@ docker run -p 8000:8000 emkoscielniak/module12_is218:latest
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd module12_is218
+cd module13_is218
 
 # Set up virtual environment
 python -m venv venv
@@ -45,9 +47,36 @@ python main.py
 
 The application will be available at `http://localhost:8000`
 
+## 🌐 Frontend Pages
+
+### Registration Page (`/register`)
+- **URL**: `http://localhost:8000/register`
+- **Features**:
+  - Fields: First Name, Last Name, Username, Email, Password, Confirm Password
+  - Client-side validation for email format and password requirements
+  - Password must be at least 6 characters with uppercase, lowercase, and digit
+  - Real-time feedback for validation errors
+  - Success message on successful registration
+
+### Login Page (`/login`)
+- **URL**: `http://localhost:8000/login`
+- **Features**:
+  - Fields: Username/Email, Password
+  - Minimal client-side validation
+  - JWT token storage in localStorage on successful login
+  - Error handling for invalid credentials (401 responses)
+  - Automatic redirect to calculator after login
+
+### Calculator Page (`/`)
+- **URL**: `http://localhost:8000/`
+- **Features**:
+  - Basic arithmetic operations
+  - Real-time calculation results
+  - Error handling (e.g., division by zero)
+
 ## 📋 API Endpoints
 
-### User Management
+### Authentication Endpoints
 - `POST /users/register` - Register a new user with UserCreate schema
 - `POST /users/login` - Login with username/password, returns JWT token
 - `GET /users/me` - Get current authenticated user information
@@ -67,7 +96,153 @@ The application will be available at `http://localhost:8000`
 - `GET /health` - Health check endpoint
 - Calculator endpoints: `/add`, `/subtract`, `/multiply`, `/divide`
 
-## 🧪 Running Tests Locally
+## 🧪 Running Tests
+
+### Prerequisites
+- Python 3.10+
+- PostgreSQL database
+- Playwright browsers installed
+
+### Setup Test Environment
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Install Playwright browsers
+playwright install
+
+# Set up test database
+export DATABASE_URL="postgresql://user:password@localhost:5432/mytestdb"
+```
+
+### Running Unit Tests
+
+```bash
+# Run unit tests with coverage
+pytest tests/unit/ --cov=app --cov-report=html
+
+# Run specific unit test modules
+pytest tests/unit/test_calculation_model.py -v
+```
+
+### Running Integration Tests
+
+```bash
+# Run integration tests
+pytest tests/integration/ --tb=short -v
+
+# Run specific integration tests
+pytest tests/integration/test_user_auth.py -v
+```
+
+### Running Playwright E2E Tests
+
+```bash
+# Run all E2E tests
+pytest tests/e2e/ --tb=short -v
+
+# Run with headed browser (visible)
+pytest tests/e2e/ --headed -v
+
+# Run specific E2E test
+pytest tests/e2e/test_e2e.py::test_register_with_valid_data -v
+```
+
+### E2E Test Coverage
+
+The E2E tests cover:
+
+#### Positive Test Cases:
+- ✅ User registration with valid data (email format, password length)
+- ✅ User login with correct credentials
+- ✅ JWT token storage and success messages
+
+#### Negative Test Cases:
+- ❌ Registration with short password (< 6 characters)
+- ❌ Registration with invalid email format
+- ❌ Registration with mismatched passwords
+- ❌ Login with incorrect password (returns 401)
+- ❌ Login with nonexistent username (returns 401)
+
+### Running All Tests
+
+```bash
+# Run complete test suite
+pytest tests/ --cov=app --tb=short -v
+```
+
+## 🚀 Docker Hub Repository
+
+**Repository**: [emkoscielniak/module13_is218](https://hub.docker.com/r/emkoscielniak/module13_is218)
+
+### Available Tags:
+- `latest` - Latest stable version
+- `<commit-sha>` - Specific commit versions
+
+### Pulling the Image:
+
+```bash
+# Pull latest version
+docker pull emkoscielniak/module13_is218:latest
+
+# Pull specific version
+docker pull emkoscielniak/module13_is218:<commit-sha>
+```
+
+### Running with Docker Compose:
+
+```yaml
+version: '3.8'
+services:
+  app:
+    image: emkoscielniak/module13_is218:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydb
+    depends_on:
+      - db
+  
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+```
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+The CI/CD pipeline automatically:
+
+1. **Testing Phase**:
+   - Runs unit tests with coverage reporting
+   - Runs integration tests against PostgreSQL
+   - Executes Playwright E2E tests in headless mode
+
+2. **Security Phase**:
+   - Builds Docker image
+   - Runs Trivy vulnerability scanner
+   - Fails on CRITICAL/HIGH vulnerabilities
+
+3. **Deployment Phase** (on main branch):
+   - Builds multi-platform Docker image (linux/amd64, linux/arm64)
+   - Pushes to Docker Hub with `latest` and `<commit-sha>` tags
+   - Uses Docker layer caching for optimization
+
+### Workflow Triggers:
+- Push to `main` branch
+- Pull requests to `main` branch
+
+## 🧪 Running Tests Locally (Detailed)
 
 ### Prerequisites
 - PostgreSQL database running locally

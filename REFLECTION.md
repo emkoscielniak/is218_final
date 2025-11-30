@@ -1,10 +1,62 @@
-# Development and Deployment Reflection
+# Module 13 Development and Testing Reflection
 
 ## Project Overview
 
-This FastAPI application implements a secure user authentication system with comprehensive testing and CI/CD deployment to Docker Hub. The project demonstrates modern Python web development practices including SQLAlchemy ORM, Pydantic validation, JWT authentication, and automated deployment pipelines.
+This module focused on implementing JWT-based authentication with front-end registration and login pages, comprehensive Playwright E2E testing, and maintaining a robust CI/CD pipeline. The project demonstrates full-stack web development with secure authentication, client-side validation, and automated testing workflows.
 
-## Key Experiences and Learning Outcomes
+## Module 13 Specific Experiences and Learning Outcomes
+
+### 1. **JWT Authentication Implementation**
+
+**Experience**: Successfully implemented JWT-based authentication with existing backend routes:
+- Leveraged existing `/register` and `/login` endpoints that return JWT tokens
+- Used `python-jose` for JWT encoding/decoding with HS256 algorithm
+- Implemented proper token expiration (30 minutes) and user payload structure
+- Created secure token storage in browser localStorage
+
+**Challenge**: Ensuring the frontend correctly handles JWT tokens and authentication states.
+**Solution**: Built comprehensive JavaScript functions for token storage, retrieval, and validation with proper error handling.
+
+**Key Insight**: JWT tokens provide stateless authentication but require careful client-side management. Storing in localStorage is convenient but requires consideration of XSS vulnerabilities.
+
+### 2. **Frontend Development with Client-Side Validation**
+
+**Experience**: Created fully functional HTML pages with JavaScript validation:
+- **Registration Page**: Complete form with first name, last name, username, email, password, and confirm password
+- **Login Page**: Simple login form with username/email and password fields
+- **Client-side Validation**: Email format validation, password strength requirements, real-time error feedback
+
+**Challenge**: Implementing comprehensive client-side validation that matches server-side requirements.
+**Solution**: Created JavaScript validation functions that mirror the Pydantic schema requirements (6+ character passwords, email regex, password complexity).
+
+**Key Insight**: Client-side validation improves user experience but server-side validation remains essential for security. The frontend should provide immediate feedback while the backend enforces the rules.
+
+### 3. **Playwright E2E Testing Development**
+
+**Experience**: Developed comprehensive E2E tests covering both positive and negative scenarios:
+- **Positive Tests**: Valid registration and login flows with success verification
+- **Negative Tests**: Short passwords, invalid emails, mismatched passwords, wrong credentials
+- **UI State Verification**: Checking error messages, success messages, and token storage
+
+**Challenge**: Creating reliable E2E tests that handle asynchronous operations and dynamic UI states.
+**Solution**: Used Playwright's `wait_for_selector()` with appropriate timeouts and state checking to ensure tests are stable and reliable.
+
+**Key Insight**: E2E tests should test user workflows, not just individual components. Testing both success and failure paths provides confidence in the application's robustness.
+
+### 4. **CI/CD Pipeline Maintenance and Docker Hub Deployment**
+
+**Experience**: Updated the existing CI/CD pipeline for module 13:
+- Modified Docker Hub repository name from `module12_is218` to `module13_is218`
+- Ensured Playwright E2E tests run successfully in the GitHub Actions environment
+- Maintained multi-platform Docker builds (linux/amd64, linux/arm64)
+- Preserved security scanning with Trivy vulnerability checks
+
+**Challenge**: Ensuring Playwright tests run reliably in the CI environment with headless browsers.
+**Solution**: The existing CI pipeline already had Playwright properly configured with browser installation and headless mode.
+
+**Key Insight**: Consistent CI/CD practices across modules help maintain deployment reliability. Automated testing in the pipeline catches issues before they reach production.
+
+## Original Key Experiences and Learning Outcomes
 
 ### 1. **SQLAlchemy and Database Design**
 
