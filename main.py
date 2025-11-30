@@ -235,6 +235,136 @@ async def read_users_me(
     """
     return current_user
 
+# Calculation BREAD endpoints
+@app.get("/calculations", response_model=List[CalculationRead])
+async def browse_calculations(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """
+    Browse all calculations with pagination.
+    """
+    try:
+        calculations = db.query(Calculation).offset(skip).limit(limit).all()
+        return [CalculationRead.model_validate(calc) for calc in calculations]
+    except Exception as e:
+        logger.error(f"Browse calculations error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/calculations/{id}", response_model=CalculationRead)
+async def read_calculation(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Read a specific calculation by ID.
+    """
+    try:
+        calculation = db.query(Calculation).filter(Calculation.id == id).first()
+        if not calculation:
+            raise HTTPException(status_code=404, detail="Calculation not found")
+        return CalculationRead.model_validate(calculation)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Read calculation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/calculations", response_model=CalculationRead, status_code=status.HTTP_201_CREATED)
+async def add_calculation(
+    calculation_data: CalculationCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Add a new calculation using CalculationCreate schema.
+    """
+    try:
+        # Create the calculation instance
+        calculation = Calculation(
+            a=calculation_data.a,
+            b=calculation_data.b,
+            type=calculation_data.type
+        )
+        
+        # Compute the result
+        calculation.result = calculation.compute()
+        
+        # Save to database
+        db.add(calculation)
+        db.commit()
+        db.refresh(calculation)
+        
+        return CalculationRead.model_validate(calculation)
+    except ValueError as e:
+        logger.error(f"Add calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected add calculation error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/calculations/{id}", response_model=CalculationRead)
+async def edit_calculation(
+    id: int,
+    calculation_update: CalculationUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    Edit/update an existing calculation.
+    """
+    try:
+        calculation = db.query(Calculation).filter(Calculation.id == id).first()
+        if not calculation:
+            raise HTTPException(status_code=404, detail="Calculation not found")
+        
+        # Update fields that are provided
+        update_data = calculation_update.model_dump(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(calculation, field, value)
+        
+        # Recalculate result if a, b, or type was updated
+        if any(key in update_data for key in ['a', 'b', 'type']):
+            calculation.result = calculation.compute()
+        
+        db.commit()
+        db.refresh(calculation)
+        
+        return CalculationRead.model_validate(calculation)
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"Edit calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected edit calculation error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/calculations/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_calculation(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a calculation by ID.
+    """
+    try:
+        calculation = db.query(Calculation).filter(Calculation.id == id).first()
+        if not calculation:
+            raise HTTPException(status_code=404, detail="Calculation not found")
+        
+        db.delete(calculation)
+        db.commit()
+        
+        return None  # 204 No Content
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete calculation error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @app.get("/health")
 async def health_check():
     """
