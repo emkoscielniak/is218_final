@@ -73,6 +73,20 @@ async def read_root(request: Request):
     """
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/register")
+async def register_page(request: Request):
+    """
+    Serve the registration page.
+    """
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/login")
+async def login_page(request: Request):
+    """
+    Serve the login page.
+    """
+    return templates.TemplateResponse("login.html", {"request": request})
+
 @app.post("/add", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
 async def add_route(operation: OperationRequest):
     """

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login - Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .error {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success {
+            color: #4CAF50;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        button {
+            width: 100%;
+            background-color: #2196F3;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #1976D2;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .register-link a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .token-info {
+            background-color: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .token-info h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        
+        .token-text {
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username or Email:</label>
+                <input type="text" id="username" name="username" required>
+                <div class="error" id="usernameError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <div class="error" id="passwordError"></div>
+            </div>
+            
+            <button type="submit" id="submitBtn">Login</button>
+            
+            <div class="success" id="successMessage">Login successful!</div>
+            <div class="error" id="generalError"></div>
+        </form>
+        
+        <div class="token-info" id="tokenInfo">
+            <h3>Login Successful!</h3>
+            <p>JWT Token stored successfully.</p>
+            <div class="token-text" id="tokenDisplay"></div>
+            <p><a href="/">Go to Calculator</a></p>
+        </div>
+        
+        <div class="register-link">
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors and success messages
+            clearMessages();
+            
+            // Get form data
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+            
+            // Client-side validation (minimal)
+            if (!validateForm(formData)) {
+                return;
+            }
+            
+            // Disable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            
+            try {
+                const response = await fetch('/login/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Success - store JWT token
+                    localStorage.setItem('jwt_token', result.access_token);
+                    localStorage.setItem('user_data', JSON.stringify(result.user));
+                    
+                    // Display success message and token info
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('tokenInfo').style.display = 'block';
+                    document.getElementById('tokenDisplay').textContent = result.access_token;
+                    
+                    // Hide the login form
+                    document.getElementById('loginForm').style.display = 'none';
+                    
+                    // Optionally redirect to main page after a delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    // Handle error (401 Unauthorized or other errors)
+                    if (response.status === 401) {
+                        document.getElementById('generalError').textContent = 'Invalid credentials. Please check your username and password.';
+                    } else {
+                        document.getElementById('generalError').textContent = result.error || 'Login failed';
+                    }
+                    document.getElementById('generalError').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('generalError').textContent = 'Network error. Please try again.';
+                document.getElementById('generalError').style.display = 'block';
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Login';
+            }
+        });
+        
+        function validateForm(formData) {
+            let isValid = true;
+            
+            // Validate required fields
+            if (!formData.username.trim()) {
+                showError('usernameError', 'Username or email is required');
+                isValid = false;
+            }
+            
+            if (!formData.password.trim()) {
+                showError('passwordError', 'Password is required');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        function clearMessages() {
+            const errorElements = document.querySelectorAll('.error');
+            const successElements = document.querySelectorAll('.success');
+            
+            errorElements.forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+            
+            successElements.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Also hide token info
+            document.getElementById('tokenInfo').style.display = 'none';
+        }
+        
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwt_token');
+            if (token) {
+                // Show that user is already logged in
+                document.getElementById('tokenInfo').style.display = 'block';
+                document.getElementById('tokenDisplay').textContent = token;
+                document.getElementById('loginForm').style.display = 'none';
+                
+                const tokenInfoElement = document.getElementById('tokenInfo');
+                tokenInfoElement.innerHTML = `
+                    <h3>Already Logged In!</h3>
+                    <p>You are already logged in. <a href="/">Go to Calculator</a></p>
+                    <button onclick="logout()" style="background-color: #f44336;">Logout</button>
+                `;
+            }
+        });
+        
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_data');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
