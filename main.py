@@ -122,13 +122,13 @@ async def divide_route(operation: OperationRequest):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # User Authentication and Registration Routes
-@app.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@app.post("/users/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
     """
-    Register a new user.
+    Register a new user using UserCreate schema.
     """
     try:
         user = User.register(db, user_data.model_dump())
@@ -143,13 +143,47 @@ async def register_user(
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.post("/login", response_model=Token)
+@app.post("/users/login", response_model=Token)
 async def login_user(
+    user_credentials: UserLogin,
+    db: Session = Depends(get_db)
+):
+    """
+    Authenticate user and return access token verifying hashed passwords.
+    """
+    try:
+        token_data = User.authenticate(db, user_credentials.username, user_credentials.password)
+        if not token_data:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return token_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# Legacy endpoints for backward compatibility
+@app.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+async def register_user_legacy(
+    user_data: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Register a new user (legacy endpoint).
+    """
+    return await register_user(user_data, db)
+
+@app.post("/login", response_model=Token)
+async def login_user_legacy(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
     """
-    Authenticate user and return access token.
+    Authenticate user and return access token (legacy endpoint).
     """
     try:
         token_data = User.authenticate(db, form_data.username, form_data.password)
