@@ -1,8 +1,130 @@
-# 📦 Project Setup
+# FastAPI User Authentication System
 
----
+A secure FastAPI application with user authentication, password hashing, and comprehensive testing. Built with SQLAlchemy ORM, Pydantic validation, and deployed via Docker Hub.
 
-# 🧩 1. Install Homebrew (Mac Only)
+## 🎯 Features
+
+- **Secure User Model**: SQLAlchemy-based user model with password hashing using bcrypt
+- **Pydantic Validation**: Strong input validation with custom password requirements
+- **Authentication**: JWT-based authentication with OAuth2 password bearer tokens
+- **API Endpoints**: RESTful endpoints for user registration, login, and profile access
+- **Comprehensive Testing**: Unit and integration tests with >70% code coverage
+- **CI/CD Pipeline**: Automated testing, security scanning, and Docker deployment
+- **Docker Support**: Containerized application ready for production deployment
+
+## 🚀 Quick Start
+
+### Using Docker (Recommended)
+
+```bash
+# Pull and run the latest image from Docker Hub
+docker run -p 8000:8000 emkoscielniak/module10_is601:latest
+```
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd module10_is601
+
+# Set up virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up database (PostgreSQL required)
+export DATABASE_URL="postgresql://user:password@localhost:5432/your_db"
+
+# Run the application
+python main.py
+```
+
+The application will be available at `http://localhost:8000`
+
+## 📋 API Endpoints
+
+- `GET /` - Homepage with calculator interface
+- `POST /register` - Register a new user
+- `POST /login` - Login with form data (OAuth2 compatible)
+- `POST /login/json` - Login with JSON payload
+- `GET /users/me` - Get current user info (requires authentication)
+- `GET /health` - Health check endpoint
+- Calculator endpoints: `/add`, `/subtract`, `/multiply`, `/divide`
+
+## 🧪 Running Tests Locally
+
+### Prerequisites
+- PostgreSQL database running
+- Virtual environment activated with dependencies installed
+
+### Test Commands
+
+```bash
+# Run all tests
+pytest
+
+# Run only unit tests
+pytest tests/unit/
+
+# Run only integration tests  
+pytest tests/integration/
+
+# Run tests with coverage report
+pytest --cov=app --cov-report=html
+
+# Run tests preserving database for debugging
+pytest --preserve-db
+```
+
+### Test Categories
+
+- **Unit Tests**: Test individual functions (password hashing, schema validation)
+- **Integration Tests**: Test API endpoints and database interactions
+- **E2E Tests**: End-to-end browser testing with Playwright
+
+## 🐳 Docker Hub Repository
+
+The application is automatically built and deployed to Docker Hub:
+
+**Repository**: [emkoscielniak/module10_is601](https://hub.docker.com/r/emkoscielniak/module10_is601)
+
+Available tags:
+- `latest` - Latest stable version
+- `<git-sha>` - Specific commit versions
+
+### Using Different Versions
+
+```bash
+# Latest version
+docker pull emkoscielniak/module10_is601:latest
+
+# Specific version
+docker pull emkoscielniak/module10_is601:<git-sha>
+```
+
+## 🛡️ Security Features
+
+- **Password Hashing**: bcrypt with salt for secure password storage
+- **JWT Tokens**: Secure authentication with configurable expiration
+- **Input Validation**: Pydantic schemas prevent injection attacks
+- **Security Scanning**: Trivy vulnerability scanning in CI/CD
+- **Database**: PostgreSQL with proper ORM usage preventing SQL injection
+
+## 🏗️ Architecture
+
+- **Framework**: FastAPI with async support
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: JWT with OAuth2 password bearer
+- **Validation**: Pydantic v2 with custom validators
+- **Testing**: pytest with fixtures and dependency injection
+- **Deployment**: Docker with multi-stage builds
+
+## 📦 Project Setup
+
+### 🧩 1. Install Homebrew (Mac Only)
 
 > Skip this step if you're on Windows.
 
