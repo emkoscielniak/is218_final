@@ -4,4 +4,4 @@ __pycache__/
 .DS_Store
 .coverage
 .pytest_cache
-htmlcov
+htmlcov.env
