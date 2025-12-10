@@ -17,7 +17,6 @@ sample_user = User(
     first_name="Test",
     last_name="User",
     is_active=True,
-    is_verified=True,
     created_at=datetime.utcnow(),
     updated_at=datetime.utcnow()
 )
@@ -29,7 +28,6 @@ inactive_user = User(
     first_name="Inactive",
     last_name="User",
     is_active=False,
-    is_verified=False,
     created_at=datetime.utcnow(),
     updated_at=datetime.utcnow()
 )
@@ -59,7 +57,6 @@ def test_get_current_user_valid_token_existing_user(mock_db, mock_verify_token):
     assert user_response.first_name == sample_user.first_name
     assert user_response.last_name == sample_user.last_name
     assert user_response.is_active == sample_user.is_active
-    assert user_response.is_verified == sample_user.is_verified
     assert user_response.created_at == sample_user.created_at
     assert user_response.updated_at == sample_user.updated_at
 

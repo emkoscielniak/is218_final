@@ -11,7 +11,6 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     is_active: bool
-    is_verified: bool
     created_at: datetime
     updated_at: datetime
 
@@ -36,7 +35,6 @@ class Token(BaseModel):
                     "first_name": "John",
                     "last_name": "Doe",
                     "is_active": True,
-                    "is_verified": False,
                     "created_at": "2025-01-01T00:00:00",
                     "updated_at": "2025-01-08T12:00:00",
                 },

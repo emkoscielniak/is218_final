@@ -37,8 +37,7 @@ class TestPasswordHashing:
             email="test@example.com",
             username="testuser",
             password_hash=hashed_password,
-            is_active=True,
-            is_verified=False
+            is_active=True
         )
         
         assert user.verify_password(plain_password) is True
@@ -56,8 +55,7 @@ class TestPasswordHashing:
             email="test@example.com",
             username="testuser",
             password_hash=hashed_password,
-            is_active=True,
-            is_verified=False
+            is_active=True
         )
         
         assert user.verify_password(wrong_password) is False
@@ -89,8 +87,7 @@ class TestPasswordHashing:
             email="test@example.com",
             username="testuser",
             password_hash=hashed_password,
-            is_active=True,
-            is_verified=False
+            is_active=True
         )
         
         assert user.verify_password(special_password) is True
@@ -107,8 +104,7 @@ class TestPasswordHashing:
             email="test@example.com",
             username="testuser",
             password_hash=hashed_password,
-            is_active=True,
-            is_verified=False
+            is_active=True
         )
         
         assert user.verify_password(unicode_password) is True

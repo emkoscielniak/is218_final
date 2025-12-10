@@ -152,14 +152,12 @@ class TestUserRead:
             "email": "john.doe@example.com",
             "username": "johndoe123",
             "is_active": True,
-            "is_verified": False,
             "created_at": now,
             "updated_at": now
         }
         user_read = UserRead(**data)
         assert user_read.id == user_id
         assert user_read.is_active is True
-        assert user_read.is_verified is False
 
 
 class TestUserResponse:
@@ -177,7 +175,6 @@ class TestUserResponse:
             "first_name": "John",
             "last_name": "Doe", 
             "is_active": True,
-            "is_verified": False,
             "created_at": now,
             "updated_at": now
         }
@@ -201,7 +198,6 @@ class TestToken:
             "first_name": "John",
             "last_name": "Doe",
             "is_active": True,
-            "is_verified": False,
             "created_at": now,
             "updated_at": now
         }

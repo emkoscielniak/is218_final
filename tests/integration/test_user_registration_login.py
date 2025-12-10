@@ -76,7 +76,6 @@ class TestUserRegistration:
         assert data["first_name"] == "Test"
         assert data["last_name"] == "User"
         assert data["is_active"] == True
-        assert data["is_verified"] == False
         assert "id" in data
         assert "created_at" in data
         assert "updated_at" in data
@@ -289,7 +288,6 @@ class TestUserDatabase:
             assert user.first_name == "Database"
             assert user.last_name == "Test"
             assert user.is_active == True
-            assert user.is_verified == False
             # Password should be hashed, not plain text
             assert user.password != "DbPass123"
             assert len(user.password) > 20  # Hashed passwords are longer

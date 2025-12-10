@@ -47,7 +47,6 @@ class TestUserRegistration:
         assert "password" not in data  # Password should not be in response
         assert "password_hash" not in data  # Password hash should not be in response
         assert data["is_active"] is True
-        assert data["is_verified"] is False
         assert "id" in data
         assert "created_at" in data
         assert "updated_at" in data

@@ -30,7 +30,6 @@ class UserRead(UserBase):
     """Schema for reading user data (excludes password)"""
     id: UUID
     is_active: bool
-    is_verified: bool
     created_at: datetime
     updated_at: datetime
 

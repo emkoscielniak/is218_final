@@ -40,13 +40,12 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    # Relationship to calculations
-    calculations = relationship("Calculation", back_populates="user", cascade="all, delete-orphan")
+    # Relationship to pets
+    pets = relationship("Pet", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(name={self.first_name} {self.last_name}, email={self.email})>"
@@ -104,8 +103,7 @@ class User(Base):
                 email=user_create.email,
                 username=user_create.username,
                 password_hash=cls.hash_password(user_create.password),
-                is_active=True,
-                is_verified=False
+                is_active=True
             )
             
             db.add(new_user)

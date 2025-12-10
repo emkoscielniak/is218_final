@@ -7,45 +7,38 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field, field_validator  # Use @validator for Pydantic 1.x
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm import Session
-from app.operations import add, subtract, multiply, divide  # Ensure correct import path
 from app.database import get_db
 from app.models.user import User
-from app.models.calculation import Calculation
+from app.models.pet import Pet
 from app.schemas.base import UserCreate, UserRead
 from app.schemas.user import UserResponse, Token, UserLogin
-from app.schemas.calculation import CalculationCreate, CalculationRead, CalculationUpdate
+from app.schemas.pet import PetCreate, PetRead, PetUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
 from typing import List
 import uvicorn
 import logging
+from openai import OpenAI
+from app.config import settings
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(title="PetWell", description="AI-powered pet care management platform")
 
 # Setup templates directory
 templates = Jinja2Templates(directory="templates")
 
-# Pydantic model for request data
-class OperationRequest(BaseModel):
-    a: float = Field(..., description="The first number")
-    b: float = Field(..., description="The second number")
-
-    @field_validator('a', 'b')  # Correct decorator for Pydantic 1.x
-    def validate_numbers(cls, value):
-        if not isinstance(value, (int, float)):
-            raise ValueError('Both a and b must be numbers.')
-        return value
-
-# Pydantic model for successful response
-class OperationResponse(BaseModel):
-    result: float = Field(..., description="The result of the operation")
-
-# Pydantic model for error response
-class ErrorResponse(BaseModel):
-    error: str = Field(..., description="Error message")
+# Initialize OpenAI client
+openai_client = None
+if settings.OPENAI_API_KEY:
+    try:
+        openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        logger.info(f"✅ OpenAI client initialized successfully with model: {settings.AI_MODEL}")
+    except Exception as e:
+        logger.error(f"❌ OpenAI client initialization failed: {e}")
+else:
+    logger.warning("⚠️ OPENAI_API_KEY not found in environment. AI features will be disabled.")
 
 # Custom Exception Handlers
 @app.exception_handler(HTTPException)
@@ -86,57 +79,6 @@ async def login_page(request: Request):
     Serve the login page.
     """
     return templates.TemplateResponse("login.html", {"request": request})
-
-@app.post("/add", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
-async def add_route(operation: OperationRequest):
-    """
-    Add two numbers.
-    """
-    try:
-        result = add(operation.a, operation.b)
-        return OperationResponse(result=result)
-    except Exception as e:
-        logger.error(f"Add Operation Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/subtract", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
-async def subtract_route(operation: OperationRequest):
-    """
-    Subtract two numbers.
-    """
-    try:
-        result = subtract(operation.a, operation.b)
-        return OperationResponse(result=result)
-    except Exception as e:
-        logger.error(f"Subtract Operation Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/multiply", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
-async def multiply_route(operation: OperationRequest):
-    """
-    Multiply two numbers.
-    """
-    try:
-        result = multiply(operation.a, operation.b)
-        return OperationResponse(result=result)
-    except Exception as e:
-        logger.error(f"Multiply Operation Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/divide", response_model=OperationResponse, responses={400: {"model": ErrorResponse}})
-async def divide_route(operation: OperationRequest):
-    """
-    Divide two numbers.
-    """
-    try:
-        result = divide(operation.a, operation.b)
-        return OperationResponse(result=result)
-    except ValueError as e:
-        logger.error(f"Divide Operation Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Divide Operation Internal Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # User Authentication and Registration Routes
 @app.post("/users/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
@@ -255,191 +197,251 @@ async def read_users_me(
     """
     return current_user
 
-# Calculation BREAD endpoints
-@app.get("/calculations", response_model=List[CalculationRead])
-async def browse_calculations(
+# Pet BREAD endpoints
+@app.get("/pets", response_model=List[PetRead])
+async def browse_pets(
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Browse all calculations belonging to the logged-in user with pagination.
+    Browse all pets belonging to the logged-in user with pagination.
     """
     try:
-        calculations = db.query(Calculation).filter(
-            Calculation.user_id == current_user.id
+        pets = db.query(Pet).filter(
+            Pet.user_id == current_user.id
         ).offset(skip).limit(limit).all()
-        return [CalculationRead.model_validate(calc) for calc in calculations]
+        return [PetRead.model_validate(pet) for pet in pets]
     except Exception as e:
-        logger.error(f"Browse calculations error: {str(e)}")
+        logger.error(f"Browse pets error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.get("/calculations/{id}", response_model=CalculationRead)
-async def read_calculation(
+@app.get("/pets/{id}", response_model=PetRead)
+async def read_pet(
     id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Read a specific calculation by ID (user-specific).
+    Read a specific pet by ID (user-specific).
     """
     try:
-        calculation = db.query(Calculation).filter(
-            Calculation.id == id,
-            Calculation.user_id == current_user.id
+        pet = db.query(Pet).filter(
+            Pet.id == id,
+            Pet.user_id == current_user.id
         ).first()
-        if not calculation:
-            raise HTTPException(status_code=404, detail="Calculation not found")
-        return CalculationRead.model_validate(calculation)
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        return PetRead.model_validate(pet)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Read calculation error: {str(e)}")
+        logger.error(f"Read pet error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.post("/calculations", response_model=CalculationRead, status_code=status.HTTP_201_CREATED)
-async def add_calculation(
-    calculation_data: CalculationCreate,
+@app.post("/pets", response_model=PetRead, status_code=status.HTTP_201_CREATED)
+async def add_pet(
+    pet_data: PetCreate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Add a new calculation for the logged-in user using CalculationCreate schema.
+    Add a new pet for the logged-in user using PetCreate schema.
     """
     try:
-        # Create the calculation instance
-        calculation = Calculation(
-            a=calculation_data.a,
-            b=calculation_data.b,
-            type=calculation_data.type,
+        # Create the pet instance
+        pet = Pet(
+            name=pet_data.name,
+            species=pet_data.species,
+            breed=pet_data.breed,
+            age=pet_data.age,
+            weight=pet_data.weight,
+            medical_notes=pet_data.medical_notes,
             user_id=current_user.id
         )
         
-        # Compute the result
-        calculation.result = calculation.compute()
+        # Generate AI care tips if OpenAI is available
+        if openai_client:
+            try:
+                prompt = f"Provide 3 brief care tips for a {pet_data.species}"
+                if pet_data.breed:
+                    prompt += f" (breed: {pet_data.breed})"
+                if pet_data.age:
+                    prompt += f" that is {pet_data.age} years old"
+                prompt += ". Keep it concise and practical."
+                
+                response = openai_client.chat.completions.create(
+                    model=settings.AI_MODEL,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=200
+                )
+                pet.ai_care_tips = response.choices[0].message.content
+            except Exception as ai_error:
+                logger.warning(f"AI care tips generation failed: {ai_error}")
+                pet.ai_care_tips = "AI care tips unavailable"
         
         # Save to database
-        db.add(calculation)
+        db.add(pet)
         db.commit()
-        db.refresh(calculation)
+        db.refresh(pet)
         
-        return CalculationRead.model_validate(calculation)
+        return PetRead.model_validate(pet)
     except ValueError as e:
-        logger.error(f"Add calculation error: {str(e)}")
+        logger.error(f"Add pet error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected add calculation error: {str(e)}")
+        logger.error(f"Unexpected add pet error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.put("/calculations/{id}", response_model=CalculationRead)
-async def edit_calculation(
+@app.put("/pets/{id}", response_model=PetRead)
+async def edit_pet(
     id: int,
-    calculation_update: CalculationUpdate,
+    pet_update: PetUpdate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Edit/update an existing calculation (user-specific).
+    Edit/update an existing pet (user-specific).
     """
     try:
-        calculation = db.query(Calculation).filter(
-            Calculation.id == id,
-            Calculation.user_id == current_user.id
+        pet = db.query(Pet).filter(
+            Pet.id == id,
+            Pet.user_id == current_user.id
         ).first()
-        if not calculation:
-            raise HTTPException(status_code=404, detail="Calculation not found")
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
         
         # Update fields that are provided
-        update_data = calculation_update.model_dump(exclude_unset=True)
+        update_data = pet_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
-            setattr(calculation, field, value)
-        
-        # Recalculate result if a, b, or type was updated
-        if any(key in update_data for key in ['a', 'b', 'type']):
-            calculation.result = calculation.compute()
+            setattr(pet, field, value)
         
         db.commit()
-        db.refresh(calculation)
+        db.refresh(pet)
         
-        return CalculationRead.model_validate(calculation)
+        return PetRead.model_validate(pet)
     except HTTPException:
         raise
     except ValueError as e:
-        logger.error(f"Edit calculation error: {str(e)}")
+        logger.error(f"Edit pet error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected edit calculation error: {str(e)}")
+        logger.error(f"Unexpected edit pet error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.patch("/calculations/{id}", response_model=CalculationRead)
-async def patch_calculation(
+@app.patch("/pets/{id}", response_model=PetRead)
+async def patch_pet(
     id: int,
-    calculation_update: CalculationUpdate,
+    pet_update: PetUpdate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Partially update an existing calculation (user-specific).
+    Partially update an existing pet (user-specific).
     """
     try:
-        calculation = db.query(Calculation).filter(
-            Calculation.id == id,
-            Calculation.user_id == current_user.id
+        pet = db.query(Pet).filter(
+            Pet.id == id,
+            Pet.user_id == current_user.id
         ).first()
-        if not calculation:
-            raise HTTPException(status_code=404, detail="Calculation not found")
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
         
         # Update fields that are provided
-        update_data = calculation_update.model_dump(exclude_unset=True)
+        update_data = pet_update.model_dump(exclude_unset=True)
         for field, value in update_data.items():
-            setattr(calculation, field, value)
-        
-        # Recalculate result if a, b, or type was updated
-        if any(key in update_data for key in ['a', 'b', 'type']):
-            calculation.result = calculation.compute()
+            setattr(pet, field, value)
         
         db.commit()
-        db.refresh(calculation)
+        db.refresh(pet)
         
-        return CalculationRead.model_validate(calculation)
+        return PetRead.model_validate(pet)
     except HTTPException:
         raise
     except ValueError as e:
-        logger.error(f"Patch calculation error: {str(e)}")
+        logger.error(f"Patch pet error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected patch calculation error: {str(e)}")
+        logger.error(f"Unexpected patch pet error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.delete("/calculations/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_calculation(
+@app.delete("/pets/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_pet(
     id: int,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     """
-    Delete a calculation by ID (user-specific).
+    Delete a pet by ID (user-specific).
     """
     try:
-        calculation = db.query(Calculation).filter(
-            Calculation.id == id,
-            Calculation.user_id == current_user.id
+        pet = db.query(Pet).filter(
+            Pet.id == id,
+            Pet.user_id == current_user.id
         ).first()
-        if not calculation:
-            raise HTTPException(status_code=404, detail="Calculation not found")
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
         
-        db.delete(calculation)
+        db.delete(pet)
         db.commit()
         
         return None  # 204 No Content
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Delete calculation error: {str(e)}")
+        logger.error(f"Delete pet error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/pets/{id}/regenerate-tips", response_model=PetRead)
+async def regenerate_care_tips(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Regenerate AI care tips for a specific pet.
+    """
+    try:
+        pet = db.query(Pet).filter(
+            Pet.id == id,
+            Pet.user_id == current_user.id
+        ).first()
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        
+        if not openai_client:
+            raise HTTPException(status_code=503, detail="AI service unavailable")
+        
+        # Generate new AI care tips
+        prompt = f"Provide 3 detailed care tips for a {pet.species}"
+        if pet.breed:
+            prompt += f" (breed: {pet.breed})"
+        if pet.age:
+            prompt += f" that is {pet.age} years old"
+        if pet.medical_notes:
+            prompt += f". Medical notes: {pet.medical_notes[:100]}"
+        prompt += ". Keep it practical and actionable."
+        
+        response = openai_client.chat.completions.create(
+            model=settings.AI_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300
+        )
+        pet.ai_care_tips = response.choices[0].message.content
+        
+        db.commit()
+        db.refresh(pet)
+        
+        return PetRead.model_validate(pet)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Regenerate tips error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 

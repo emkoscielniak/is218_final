@@ -3,109 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration - Calculator</title>
+    <title>Register - PetWell</title>
     <style>
+        :root {
+            --primary-color: #7ED321;
+            --primary-dark: #5FB904;
+            --secondary-color: #50E3C2;
+            --danger-color: #E74C3C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 0 auto;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
-            background-color: #f5f5f5;
         }
         
         .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 550px;
+            width: 100%;
+            animation: fadeIn 0.6s ease-out;
         }
         
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--primary-color);
             margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+            animation: slideIn 0.8s ease-out;
         }
         
         .form-group {
             margin-bottom: 20px;
+            animation: slideIn 0.6s ease-out;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2C3E50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         input[type="text"], 
         input[type="email"], 
         input[type="password"] {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
+            padding: 14px 16px;
+            border: 2px solid #E0E7FF;
+            border-radius: 10px;
             box-sizing: border-box;
             font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: white;
         }
         
         input:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(126, 211, 33, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder {
+            color: #A0AEC0;
         }
         
         .error {
-            color: #d32f2f;
+            color: var(--danger-color);
             font-size: 14px;
-            margin-top: 5px;
+            margin-top: 8px;
             display: none;
+            font-weight: 600;
+            animation: pulse 0.5s ease-in-out;
         }
         
         .success {
-            color: #4CAF50;
-            font-size: 14px;
-            margin-top: 10px;
+            color: var(--primary-color);
+            font-size: 16px;
+            margin-top: 15px;
             display: none;
+            text-align: center;
+            font-weight: 600;
+            padding: 12px;
+            background: rgba(126, 211, 33, 0.1);
+            border-radius: 10px;
+            animation: pulse 0.5s ease-in-out;
         }
         
         button {
             width: 100%;
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
-            padding: 14px;
+            padding: 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(126, 211, 33, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
         }
         
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(126, 211, 33, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
         
         button:disabled {
-            background-color: #cccccc;
+            background: linear-gradient(135deg, #cccccc, #999999);
             cursor: not-allowed;
+            box-shadow: none;
         }
         
         .login-link {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #E0E7FF;
         }
         
         .login-link a {
-            color: #4CAF50;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
         
         .login-link a:hover {
+            color: var(--primary-dark);
             text-decoration: underline;
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: #7F8C8D;
+            margin-top: 5px;
+            padding: 8px;
+            background: #F8F9FA;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 580px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Register</h1>
+        <h1>🐾 Join PetWell 🐾</h1>
         <form id="registerForm">
             <div class="form-group">
                 <label for="firstName">First Name:</label>

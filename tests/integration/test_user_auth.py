@@ -35,7 +35,6 @@ def test_user_registration(db_session, fake_user_data):
     assert user.email == fake_user_data['email']
     assert user.username == fake_user_data['username']
     assert user.is_active is True
-    assert user.is_verified is False
     assert user.verify_password("TestPass123") is True
 
 def test_duplicate_user_registration(db_session):
