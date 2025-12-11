@@ -25,3 +25,6 @@ class Pet(Base):
     
     # Activities relationship
     activities = relationship("Activity", back_populates="pet", cascade="all, delete-orphan")
+    
+    # Medications relationship
+    medications = relationship("Medication", back_populates="pet", cascade="all, delete-orphan")

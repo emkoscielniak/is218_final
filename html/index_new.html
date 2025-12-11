@@ -48,7 +48,7 @@
                         <p>Track daily activities</p>
                     </div>
                 </div>
-                <div class="action-card">
+                <div class="action-card" id="addMedicationBtn">
                     <div class="action-icon"><i class="fas fa-pills"></i></div>
                     <div class="action-content">
                         <h3>Add Medication</h3>
@@ -239,6 +239,81 @@
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js?v=10"></script>
+    <!-- Add Medication Modal -->
+    <div id="addMedicationModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-pills"></i> Add Medication</h3>
+                <button class="close-btn" id="closeMedicationModal">&times;</button>
+            </div>
+            <form id="addMedicationForm">
+                <div class="form-group">
+                    <label for="medicationPet">Select Pet *</label>
+                    <select id="medicationPet" required>
+                        <option value="">Choose a pet...</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="medicationName">Medication Name *</label>
+                    <input type="text" id="medicationName" placeholder="e.g., Amoxicillin" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medicationDosage">Dosage *</label>
+                        <input type="text" id="medicationDosage" placeholder="e.g., 10mg, 1 tablet" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicationFrequency">Frequency *</label>
+                        <input type="text" id="medicationFrequency" placeholder="e.g., twice daily" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="medicationRoute">Route of Administration</label>
+                    <select id="medicationRoute">
+                        <option value="">Select route...</option>
+                        <option value="oral">Oral</option>
+                        <option value="topical">Topical</option>
+                        <option value="injection">Injection</option>
+                        <option value="eye_drops">Eye Drops</option>
+                        <option value="ear_drops">Ear Drops</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="medicationReason">Reason for Prescription</label>
+                    <textarea id="medicationReason" placeholder="Why is this medication prescribed?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="medicationVet">Prescribing Veterinarian</label>
+                    <input type="text" id="medicationVet" placeholder="e.g., Dr. Smith, Animal Care Clinic">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medicationStartDate">Start Date *</label>
+                        <input type="date" id="medicationStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicationEndDate">End Date (Optional)</label>
+                        <input type="date" id="medicationEndDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="medicationNotes">Additional Notes</label>
+                    <textarea id="medicationNotes" placeholder="Any special instructions or notes..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="medicationActive" checked>
+                        <span>Active Medication</span>
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary btn-block"><i class="fas fa-save"></i> Add Medication</button>
+            </form>
+            <div id="medicationMessage"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js?v=11"></script>
 </body>
 </html>

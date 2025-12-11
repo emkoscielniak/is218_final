@@ -398,6 +398,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logActivityForm) {
         logActivityForm.addEventListener('submit', handleLogActivity);
     }
+    
+    // Add Medication button click handler
+    const addMedicationBtn = document.getElementById('addMedicationBtn');
+    if (addMedicationBtn) {
+        addMedicationBtn.addEventListener('click', openAddMedicationModal);
+    }
+    
+    // Close medication modal
+    const closeMedicationModal = document.getElementById('closeMedicationModal');
+    if (closeMedicationModal) {
+        closeMedicationModal.addEventListener('click', () => {
+            document.getElementById('addMedicationModal').classList.add('hidden');
+        });
+    }
+    
+    // Add medication form submit
+    const addMedicationForm = document.getElementById('addMedicationForm');
+    if (addMedicationForm) {
+        addMedicationForm.addEventListener('submit', handleAddMedication);
+    }
 });
 
 // Open log activity modal
@@ -494,6 +514,109 @@ async function handleLogActivity(e) {
         
     } catch (error) {
         console.error('Error logging activity:', error);
+        messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.message}</div>`;
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Open add medication modal
+async function openAddMedicationModal() {
+    const modal = document.getElementById('addMedicationModal');
+    const medicationPetSelect = document.getElementById('medicationPet');
+    
+    // Set default start date to today
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('medicationStartDate').value = `${year}-${month}-${day}`;
+    
+    // Load pets into dropdown
+    try {
+        const response = await fetch('/pets', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const pets = await response.json();
+            medicationPetSelect.innerHTML = '<option value="">Choose a pet...</option>' + 
+                pets.map(pet => `<option value="${pet.id}">${pet.name} (${pet.species})</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading pets:', error);
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+// Handle add medication form submission
+async function handleAddMedication(e) {
+    e.preventDefault();
+    
+    const messageDiv = document.getElementById('medicationMessage');
+    const petId = document.getElementById('medicationPet').value;
+    const name = document.getElementById('medicationName').value;
+    const dosage = document.getElementById('medicationDosage').value;
+    const frequency = document.getElementById('medicationFrequency').value;
+    const route = document.getElementById('medicationRoute').value;
+    const reason = document.getElementById('medicationReason').value;
+    const prescribingVet = document.getElementById('medicationVet').value;
+    const startDate = document.getElementById('medicationStartDate').value;
+    const endDate = document.getElementById('medicationEndDate').value;
+    const notes = document.getElementById('medicationNotes').value;
+    const isActive = document.getElementById('medicationActive').checked;
+    
+    try {
+        const medicationData = {
+            pet_id: parseInt(petId),
+            name: name,
+            dosage: dosage,
+            frequency: frequency,
+            is_active: isActive,
+            start_date: new Date(startDate).toISOString()
+        };
+        
+        // Add optional fields
+        if (route) medicationData.route = route;
+        if (reason) medicationData.reason = reason;
+        if (prescribingVet) medicationData.prescribing_vet = prescribingVet;
+        if (endDate) medicationData.end_date = new Date(endDate).toISOString();
+        if (notes) medicationData.notes = notes;
+        
+        const response = await fetch('/medications', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(medicationData)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to add medication');
+        }
+        
+        const medication = await response.json();
+        
+        // Show success message
+        messageDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Medication added successfully!</div>';
+        messageDiv.style.display = 'block';
+        
+        // Reset form
+        document.getElementById('addMedicationForm').reset();
+        
+        // Close modal after 2 seconds
+        setTimeout(() => {
+            document.getElementById('addMedicationModal').classList.add('hidden');
+            messageDiv.innerHTML = '';
+            messageDiv.style.display = 'none';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error adding medication:', error);
         messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.message}</div>`;
         messageDiv.style.display = 'block';
     }

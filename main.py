@@ -12,10 +12,12 @@ from app.database import get_db
 from app.models.user import User
 from app.models.pet import Pet
 from app.models.activity import Activity
+from app.models.medication import Medication
 from app.schemas.base import UserCreate, UserRead
 from app.schemas.user import UserResponse, Token, UserLogin
 from app.schemas.pet import PetCreate, PetRead, PetUpdate
 from app.schemas.activity import ActivityCreate, ActivityRead, ActivityUpdate
+from app.schemas.medication import MedicationCreate, MedicationRead, MedicationUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
 from typing import List
 import uvicorn
@@ -621,6 +623,176 @@ async def delete_activity(
         raise
     except Exception as e:
         logger.error(f"Delete activity error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# ===========================
+# Medication Endpoints
+# ===========================
+
+@app.post("/medications", response_model=MedicationRead, status_code=status.HTTP_201_CREATED)
+async def create_medication(
+    medication: MedicationCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new medication for a pet.
+    """
+    try:
+        # Verify pet belongs to user
+        pet = db.query(Pet).filter(Pet.id == medication.pet_id, Pet.user_id == current_user.id).first()
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        
+        # Create medication
+        new_medication = Medication(**medication.model_dump())
+        db.add(new_medication)
+        db.commit()
+        db.refresh(new_medication)
+        
+        logger.info(f"Medication created: {new_medication.id} for pet {pet.name}")
+        return MedicationRead.model_validate(new_medication)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create medication error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/medications", response_model=List[MedicationRead])
+async def get_medications(
+    pet_id: int = None,
+    active_only: bool = True,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all medications for the current user's pets.
+    Optionally filter by pet_id and active status.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        query = db.query(Medication).filter(Medication.pet_id.in_(user_pet_ids))
+        
+        if pet_id:
+            # Verify pet belongs to user
+            if pet_id not in user_pet_ids:
+                raise HTTPException(status_code=404, detail="Pet not found")
+            query = query.filter(Medication.pet_id == pet_id)
+        
+        if active_only:
+            query = query.filter(Medication.is_active == True)
+        
+        medications = query.order_by(Medication.start_date.desc()).offset(skip).limit(limit).all()
+        return [MedicationRead.model_validate(med) for med in medications]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get medications error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/medications/{id}", response_model=MedicationRead)
+async def get_medication(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific medication by ID.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        medication = db.query(Medication).filter(
+            Medication.id == id,
+            Medication.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not medication:
+            raise HTTPException(status_code=404, detail="Medication not found")
+        
+        return MedicationRead.model_validate(medication)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get medication error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/medications/{id}", response_model=MedicationRead)
+async def update_medication(
+    id: int,
+    medication_update: MedicationUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update a medication.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        medication = db.query(Medication).filter(
+            Medication.id == id,
+            Medication.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not medication:
+            raise HTTPException(status_code=404, detail="Medication not found")
+        
+        # Update fields
+        update_data = medication_update.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(medication, key, value)
+        
+        db.commit()
+        db.refresh(medication)
+        
+        logger.info(f"Medication updated: {medication.id}")
+        return MedicationRead.model_validate(medication)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update medication error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/medications/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_medication(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a medication.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        medication = db.query(Medication).filter(
+            Medication.id == id,
+            Medication.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not medication:
+            raise HTTPException(status_code=404, detail="Medication not found")
+        
+        db.delete(medication)
+        db.commit()
+        
+        logger.info(f"Medication deleted: {id}")
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete medication error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
