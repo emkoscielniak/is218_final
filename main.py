@@ -1,8 +1,9 @@
 # main.py
 
 from fastapi import FastAPI, HTTPException, Request, Depends, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field, field_validator  # Use @validator for Pydantic 1.x
 from fastapi.exceptions import RequestValidationError
@@ -26,8 +27,11 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PetWell", description="AI-powered pet care management platform")
 
-# Setup templates directory
-templates = Jinja2Templates(directory="templates")
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup html directory
+templates = Jinja2Templates(directory="html")
 
 # Initialize OpenAI client
 openai_client = None
@@ -60,9 +64,16 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 @app.get("/")
-async def read_root(request: Request):
+async def read_root():
     """
-    Serve the index.html template.
+    Redirect to login page.
+    """
+    return RedirectResponse(url="/login", status_code=302)
+
+@app.get("/dashboard")
+async def dashboard(request: Request):
+    """
+    Serve the dashboard/index page for logged-in users.
     """
     return templates.TemplateResponse("index.html", {"request": request})
 

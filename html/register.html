@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PetWell</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: #E4B5A0;
+            color: #6B5B7A;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .split-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Left Side - Content */
+        .left-side {
+            flex: 1;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 4rem;
+            color: #6B5B7A;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 3rem;
+            color: #6B5B7A;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-family: 'Fredoka', sans-serif;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #6B5B7A;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            font-family: 'Fredoka', sans-serif;
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #E8DCCF;
+            color: #6B5B7A;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(211, 155, 166, 0.3);
+            transform: translateY(-2px);
+        }
+
+        input::placeholder {
+            color: rgba(107, 91, 122, 0.5);
+        }
+
+        button {
+            font-family: 'Bubblegum Sans', cursive;
+            width: 100%;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #D39BA6;
+            color: white;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(211, 155, 166, 0.3);
+        }
+
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .error {
+            background: rgba(211, 155, 166, 0.2);
+            color: #6B5B7A;
+            border: 2px solid #D39BA6;
+        }
+
+        .success {
+            background: rgba(127, 169, 155, 0.2);
+            color: #6B5B7A;
+            border: 2px solid #7FA99B;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.1rem;
+        }
+
+        .login-link a {
+            color: #D39BA6;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Right Side - Decorative */
+        .right-side {
+            flex: 1;
+            background: #E4B5A0;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .tagline {
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 4rem;
+            color: #6B5B7A;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .paw-pattern {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .paw {
+            font-size: 6rem;
+            opacity: 0.2;
+            position: absolute;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .paw:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
+        .paw:nth-child(2) { top: 30%; right: 15%; animation-delay: 0.5s; }
+        .paw:nth-child(3) { top: 50%; left: 15%; animation-delay: 1s; }
+        .paw:nth-child(4) { top: 70%; right: 20%; animation-delay: 1.5s; }
+        .paw:nth-child(5) { bottom: 10%; left: 30%; animation-delay: 2s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .copyright {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            color: #6B5B7A;
+            text-align: center;
+        }
+
+        @media (max-width: 1024px) {
+            .split-container {
+                flex-direction: column;
+            }
+
+            .right-side {
+                min-height: 40vh;
+            }
+
+            .tagline {
+                font-size: 3rem;
+            }
+
+            .paw {
+                font-size: 4rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .left-side {
+                padding: 40px 20px;
+            }
+
+            .logo {
+                font-size: 3rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            button {
+                font-size: 1.4rem;
+            }
+
+            .tagline {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="split-container">
+        <!-- Left Side - Register Form -->
+        <div class="left-side">
+            <div class="form-container">
+                <div class="logo">🐾 PetWell 🐾</div>
+                <h1>Join Us</h1>
+                
+                <form id="registerForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" placeholder="John" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" placeholder="Doe" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="johndoe" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Min 6 chars, 1 uppercase, 1 lowercase, 1 digit" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password" required>
+                    </div>
+                    
+                    <button type="submit">Register</button>
+                    
+                    <div id="message"></div>
+                </form>
+                
+                <div class="login-link">
+                    Already have an account? <a href="/login">Login here</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Decorative -->
+        <div class="right-side">
+            <div class="tagline">Pet care made easy</div>
+            
+            <div class="paw-pattern">
+                <div class="paw">🐾</div>
+                <div class="paw">🐾</div>
+                <div class="paw">🐾</div>
+                <div class="paw">🐾</div>
+                <div class="paw">🐾</div>
+            </div>
+            
+            <div class="copyright">© 2025 PetWell - All rights reserved</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = '';
+            messageDiv.className = 'message';
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                messageDiv.textContent = 'Passwords do not match';
+                messageDiv.className = 'message error';
+                return;
+            }
+            
+            const formData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                username: document.getElementById('username').value,
+                password: password
+            };
+            
+            try {
+                const response = await fetch('/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    messageDiv.textContent = 'Registration successful! Redirecting to login...';
+                    messageDiv.className = 'message success';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    const data = await response.json();
+                    messageDiv.textContent = data.error || 'Registration failed';
+                    messageDiv.className = 'message error';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Network error. Please try again.';
+                messageDiv.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>

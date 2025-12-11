@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetWell - AI-Powered Pet Care</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/styles/index.css?v=2">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span class="emoji">🐾</span> PetWell <span class="emoji">🐾</span></h1>
+            <p>AI-Powered Pet Care Management Platform</p>
+        </header>
+
+        <!-- Authentication Section (Shown when not logged in) -->
+        <div id="authSection" class="hidden">
+            <div class="auth-section">
+                <div class="section">
+                    <h2>🔐 Login</h2>
+                    <form id="loginForm">
+                        <input type="text" id="loginUsername" placeholder="Username or Email" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <button type="submit">Login</button>
+                    </form>
+                    <div id="loginMessage"></div>
+                </div>
+
+                <div class="section">
+                    <h2>📝 Register</h2>
+                    <form id="registerForm">
+                        <input type="text" id="regFirstName" placeholder="First Name" required>
+                        <input type="text" id="regLastName" placeholder="Last Name" required>
+                        <input type="email" id="regEmail" placeholder="Email" required>
+                        <input type="text" id="regUsername" placeholder="Username" required>
+                        <input type="password" id="regPassword" placeholder="Password (min 6 chars, 1 uppercase, 1 lowercase, 1 digit)" required>
+                        <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                        <button type="submit">Register</button>
+                    </form>
+                    <div id="registerMessage"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pet Management Section (Shown when logged in) -->
+        <div id="petSection" class="hidden">
+            <div class="user-info">
+                <h3>Welcome, <span id="userName"></span>! 👋</h3>
+                <button id="logoutBtn">Logout</button>
+            </div>
+
+            <!-- Add New Pet -->
+            <div class="section">
+                <h2>➕ Add New Pet</h2>
+                <form id="addPetForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="petName">Pet Name *</label>
+                            <input type="text" id="petName" placeholder="e.g., Buddy" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="petSpecies">Species *</label>
+                            <select id="petSpecies" required>
+                                <option value="">Select Species</option>
+                                <option value="dog">🐕 Dog</option>
+                                <option value="cat">🐈 Cat</option>
+                                <option value="bird">🐦 Bird</option>
+                                <option value="fish">🐠 Fish</option>
+                                <option value="rabbit">🐰 Rabbit</option>
+                                <option value="hamster">🐹 Hamster</option>
+                                <option value="guinea pig">🐹 Guinea Pig</option>
+                                <option value="reptile">🦎 Reptile</option>
+                                <option value="other">🐾 Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="petBreed">Breed (Optional)</label>
+                            <input type="text" id="petBreed" placeholder="e.g., Golden Retriever">
+                        </div>
+                        <div class="form-group">
+                            <label for="petAge">Age (years)</label>
+                            <input type="number" id="petAge" min="0" max="50" placeholder="e.g., 3">
+                        </div>
+                        <div class="form-group">
+                            <label for="petWeight">Weight (lbs)</label>
+                            <input type="number" id="petWeight" min="0.1" max="500" step="0.1" placeholder="e.g., 45.5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="petMedicalNotes">Medical Notes (Optional)</label>
+                        <textarea id="petMedicalNotes" placeholder="Any medical conditions, allergies, or special care instructions..."></textarea>
+                    </div>
+                    <button type="submit">Add Pet & Get AI Care Tips</button>
+                </form>
+                <div id="addPetMessage"></div>
+            </div>
+
+            <!-- Pet List -->
+            <div class="section">
+                <h2>🐾 My Pets</h2>
+                <div id="petList" class="pet-grid">
+                    <!-- Pet cards will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/index.js"></script>
+</body>
+</html>
