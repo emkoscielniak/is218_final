@@ -81,6 +81,13 @@ async def dashboard(request: Request):
     """
     return templates.TemplateResponse("index_new.html", {"request": request})
 
+@app.get("/reports")
+async def reports(request: Request):
+    """
+    Serve the health reports page.
+    """
+    return templates.TemplateResponse("reports.html", {"request": request})
+
 @app.get("/register")
 async def register_page(request: Request):
     """

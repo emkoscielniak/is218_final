@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetWell - Health Reports</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <link rel="stylesheet" href="/static/styles/dashboard.css?v=8">
+    <link rel="stylesheet" href="/static/styles/reports.css?v=1">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <h1 class="logo"><i class="fas fa-paw"></i> PetWell</h1>
+        </div>
+        <div class="nav-center">
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="#" class="nav-link">My Pets</a>
+            <a href="#" class="nav-link">Appointments</a>
+            <a href="#" class="nav-link active">Health Reports</a>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn"><i class="fas fa-bell"></i></button>
+            <div class="user-avatar" id="userAvatar">JD</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="reports-container">
+        <!-- Header Section -->
+        <div class="reports-header">
+            <div>
+                <h2><i class="fas fa-chart-line"></i> Health Reports & Analytics</h2>
+                <p class="reports-subtitle">Comprehensive insights into your pets' health and activities</p>
+            </div>
+            <div class="header-actions">
+                <select id="petFilter" class="pet-filter">
+                    <option value="all">All Pets</option>
+                </select>
+                <button class="btn-primary" id="exportReportBtn">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-icon" style="background: rgba(126, 150, 128, 0.2);">
+                    <i class="fas fa-clipboard-list" style="color: var(--primary-color);"></i>
+                </div>
+                <div class="summary-content">
+                    <h3 id="totalActivities">0</h3>
+                    <p>Total Activities</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon" style="background: rgba(216, 127, 129, 0.2);">
+                    <i class="fas fa-pills" style="color: var(--secondary-color);"></i>
+                </div>
+                <div class="summary-content">
+                    <h3 id="activeMedications">0</h3>
+                    <p>Active Medications</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon" style="background: rgba(174, 99, 120, 0.2);">
+                    <i class="fas fa-heartbeat" style="color: var(--accent-color);"></i>
+                </div>
+                <div class="summary-content">
+                    <h3 id="healthScore">0</h3>
+                    <p>Health Score</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon" style="background: rgba(121, 97, 111, 0.2);">
+                    <i class="fas fa-calendar-check" style="color: var(--text-dark);"></i>
+                </div>
+                <div class="summary-content">
+                    <h3 id="thisWeekActivities">0</h3>
+                    <p>This Week</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar"></i> Activity Breakdown</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activityTypeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Activity Trend (Last 30 Days)</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activityTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Insights Section -->
+        <div class="insights-section">
+            <h3><i class="fas fa-lightbulb"></i> Health Insights & Recommendations</h3>
+            <div id="healthInsights" class="insights-grid">
+                <!-- Insights will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Detailed Tables -->
+        <div class="tables-section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-clipboard-list"></i> Recent Activities</h3>
+                </div>
+                <div class="table-container">
+                    <table id="activitiesTable">
+                        <thead>
+                            <tr>
+                                <th>Pet</th>
+                                <th>Activity</th>
+                                <th>Title</th>
+                                <th>Duration</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table rows will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-pills"></i> Active Medications</h3>
+                </div>
+                <div class="table-container">
+                    <table id="medicationsTable">
+                        <thead>
+                            <tr>
+                                <th>Pet</th>
+                                <th>Medication</th>
+                                <th>Dosage</th>
+                                <th>Frequency</th>
+                                <th>Start Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table rows will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/reports.js?v=1"></script>
+</body>
+</html>
