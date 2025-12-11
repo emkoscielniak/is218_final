@@ -11,9 +11,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from app.models.pet import Pet
+from app.models.activity import Activity
 from app.schemas.base import UserCreate, UserRead
 from app.schemas.user import UserResponse, Token, UserLogin
 from app.schemas.pet import PetCreate, PetRead, PetUpdate
+from app.schemas.activity import ActivityCreate, ActivityRead, ActivityUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
 from typing import List
 import uvicorn
@@ -453,6 +455,172 @@ async def regenerate_care_tips(
         raise
     except Exception as e:
         logger.error(f"Regenerate tips error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# ===========================
+# Activity Endpoints
+# ===========================
+
+@app.post("/activities", response_model=ActivityRead, status_code=status.HTTP_201_CREATED)
+async def create_activity(
+    activity: ActivityCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new activity for a pet.
+    """
+    try:
+        # Verify pet belongs to user
+        pet = db.query(Pet).filter(Pet.id == activity.pet_id, Pet.user_id == current_user.id).first()
+        if not pet:
+            raise HTTPException(status_code=404, detail="Pet not found")
+        
+        # Create activity
+        new_activity = Activity(**activity.model_dump())
+        db.add(new_activity)
+        db.commit()
+        db.refresh(new_activity)
+        
+        logger.info(f"Activity created: {new_activity.id} for pet {pet.name}")
+        return ActivityRead.model_validate(new_activity)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create activity error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/activities", response_model=List[ActivityRead])
+async def get_activities(
+    pet_id: int = None,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all activities for the current user's pets.
+    Optionally filter by pet_id.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        query = db.query(Activity).filter(Activity.pet_id.in_(user_pet_ids))
+        
+        if pet_id:
+            # Verify pet belongs to user
+            if pet_id not in user_pet_ids:
+                raise HTTPException(status_code=404, detail="Pet not found")
+            query = query.filter(Activity.pet_id == pet_id)
+        
+        activities = query.order_by(Activity.activity_date.desc()).offset(skip).limit(limit).all()
+        return [ActivityRead.model_validate(activity) for activity in activities]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get activities error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/activities/{id}", response_model=ActivityRead)
+async def get_activity(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific activity by ID.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        activity = db.query(Activity).filter(
+            Activity.id == id,
+            Activity.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
+        
+        return ActivityRead.model_validate(activity)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get activity error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/activities/{id}", response_model=ActivityRead)
+async def update_activity(
+    id: int,
+    activity_update: ActivityUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update an activity.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        activity = db.query(Activity).filter(
+            Activity.id == id,
+            Activity.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
+        
+        # Update fields
+        update_data = activity_update.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(activity, key, value)
+        
+        db.commit()
+        db.refresh(activity)
+        
+        logger.info(f"Activity updated: {activity.id}")
+        return ActivityRead.model_validate(activity)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update activity error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/activities/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_activity(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete an activity.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        activity = db.query(Activity).filter(
+            Activity.id == id,
+            Activity.pet_id.in_(user_pet_ids)
+        ).first()
+        
+        if not activity:
+            raise HTTPException(status_code=404, detail="Activity not found")
+        
+        db.delete(activity)
+        db.commit()
+        
+        logger.info(f"Activity deleted: {id}")
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete activity error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 

@@ -22,3 +22,6 @@ class Pet(Base):
     # Reference to a users table
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="pets")
+    
+    # Activities relationship
+    activities = relationship("Activity", back_populates="pet", cascade="all, delete-orphan")

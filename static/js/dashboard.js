@@ -378,4 +378,123 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPets();
     loadUpcomingEvents();
     loadReminders();
+    
+    // Log Activity button click handler
+    const logActivityBtn = document.getElementById('logActivityBtn');
+    if (logActivityBtn) {
+        logActivityBtn.addEventListener('click', openLogActivityModal);
+    }
+    
+    // Close activity modal
+    const closeActivityModal = document.getElementById('closeActivityModal');
+    if (closeActivityModal) {
+        closeActivityModal.addEventListener('click', () => {
+            document.getElementById('logActivityModal').classList.add('hidden');
+        });
+    }
+    
+    // Log activity form submit
+    const logActivityForm = document.getElementById('logActivityForm');
+    if (logActivityForm) {
+        logActivityForm.addEventListener('submit', handleLogActivity);
+    }
 });
+
+// Open log activity modal
+async function openLogActivityModal() {
+    const modal = document.getElementById('logActivityModal');
+    const activityPetSelect = document.getElementById('activityPet');
+    
+    // Set default date to now
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('activityDate').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // Load pets into dropdown
+    try {
+        const response = await fetch('/pets', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const pets = await response.json();
+            activityPetSelect.innerHTML = '<option value="">Choose a pet...</option>' + 
+                pets.map(pet => `<option value="${pet.id}">${pet.name} (${pet.species})</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading pets:', error);
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+// Handle log activity form submission
+async function handleLogActivity(e) {
+    e.preventDefault();
+    
+    const messageDiv = document.getElementById('activityMessage');
+    const petId = document.getElementById('activityPet').value;
+    const activityType = document.getElementById('activityType').value;
+    const title = document.getElementById('activityTitle').value;
+    const duration = document.getElementById('activityDuration').value;
+    const distance = document.getElementById('activityDistance').value;
+    const activityDate = document.getElementById('activityDate').value;
+    const description = document.getElementById('activityDescription').value;
+    const notes = document.getElementById('activityNotes').value;
+    
+    try {
+        const activityData = {
+            pet_id: parseInt(petId),
+            activity_type: activityType,
+            title: title,
+            activity_date: new Date(activityDate).toISOString()
+        };
+        
+        // Add optional fields
+        if (duration) activityData.duration = parseInt(duration);
+        if (distance) activityData.distance = parseFloat(distance);
+        if (description) activityData.description = description;
+        if (notes) activityData.notes = notes;
+        
+        const response = await fetch('/activities', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(activityData)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to log activity');
+        }
+        
+        const activity = await response.json();
+        
+        // Show success message
+        messageDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Activity logged successfully!</div>';
+        messageDiv.style.display = 'block';
+        
+        // Reset form
+        document.getElementById('logActivityForm').reset();
+        
+        // Close modal after 2 seconds
+        setTimeout(() => {
+            document.getElementById('logActivityModal').classList.add('hidden');
+            messageDiv.innerHTML = '';
+            messageDiv.style.display = 'none';
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error logging activity:', error);
+        messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.message}</div>`;
+        messageDiv.style.display = 'block';
+    }
+}

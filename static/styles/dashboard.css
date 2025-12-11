@@ -913,6 +913,39 @@ body {
     font-size: 0.95rem;
 }
 
+/* Success and Error Messages */
+.success-message,
+.error-message {
+    padding: 16px;
+    border-radius: var(--radius-md);
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    border: 2px solid;
+}
+
+.success-message {
+    background: rgba(126, 150, 128, 0.1);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.success-message i {
+    font-size: 1.2rem;
+}
+
+.error-message {
+    background: rgba(174, 99, 120, 0.1);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.error-message i {
+    font-size: 1.2rem;
+}
+
 .hidden {
     display: none;
 }
