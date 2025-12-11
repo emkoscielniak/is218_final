@@ -17,13 +17,28 @@ function getUserFromToken() {
     }
 }
 
-// Set user avatar initials
-function setUserAvatar() {
-    const userData = getUserFromToken();
-    if (userData) {
-        // You can customize this based on your user data structure
-        const initials = 'JD'; // Default, update when you have user name
-        document.getElementById('userAvatar').textContent = initials;
+// Set user avatar initials and welcome message
+async function setUserAvatar() {
+    try {
+        const response = await fetch('/users/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const user = await response.json();
+            const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
+            document.getElementById('userAvatar').textContent = initials.toUpperCase() || 'U';
+            
+            // Update welcome message with first name
+            const welcomeText = document.querySelector('.welcome-text');
+            if (welcomeText && user.firstName) {
+                welcomeText.innerHTML = `Welcome back, ${user.firstName}! <i class="fas fa-hand-wave"></i>`;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
     }
 }
 
@@ -94,6 +109,31 @@ function getSpeciesIcon(species) {
     return iconMap[species.toLowerCase()] || '<i class="fas fa-paw"></i>';
 }
 
+// Format AI care tips
+function formatCareTips(tips) {
+    // Split by numbered list pattern (1., 2., 3., etc.) or by asterisks
+    const tipPattern = /(\d+\.\s\*\*[^*]+\*\*:?\s*[^\n]+(?:\n(?!\d+\.).*)*)/g;
+    const matches = tips.match(tipPattern);
+    
+    if (matches) {
+        return matches.map(tip => {
+            // Extract heading (bold text) and content
+            const headingMatch = tip.match(/\*\*([^*]+)\*\*/);
+            const heading = headingMatch ? headingMatch[1].replace(/:/g, '').trim() : '';
+            const content = tip.replace(/\d+\.\s\*\*[^*]+\*\*:?\s*/, '').trim();
+            
+            return `
+                <div class="care-tip-item">
+                    <h5>${heading}</h5>
+                    <p>${content}</p>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Fallback: display as regular text if pattern doesn't match
+    return `<p>${tips}</p>`;
+}
 // Modal functionality
 const modal = document.getElementById('addPetModal');
 const addPetBtn = document.getElementById('addPetBtn');
@@ -173,9 +213,81 @@ document.getElementById('addPetForm').addEventListener('submit', async (e) => {
 });
 
 // View pet details
-function viewPetDetails(petId) {
-    // Navigate to pet details page or show modal
-    alert(`View details for pet ${petId}`);
+async function viewPetDetails(petId) {
+    try {
+        const response = await fetch(`/pets/${petId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load pet details');
+        }
+
+        const pet = await response.json();
+        showPetDetailsModal(pet);
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Show pet details modal
+function showPetDetailsModal(pet) {
+    const modal = document.getElementById('petDetailsModal');
+    const modalContent = document.getElementById('petDetailsContent');
+    
+    modalContent.innerHTML = `
+        <div class="pet-details-header">
+            <div class="pet-image-large">
+                ${getSpeciesIcon(pet.species)}
+            </div>
+            <div>
+                <h2>${pet.name}</h2>
+                <p class="pet-meta">${pet.species}${pet.breed ? ' • ' + pet.breed : ''}</p>
+            </div>
+        </div>
+        
+        <div class="pet-details-grid">
+            <div class="detail-item">
+                <i class="fas fa-birthday-cake"></i>
+                <div>
+                    <strong>Age</strong>
+                    <p>${pet.age ? pet.age + ' years' : 'Not specified'}</p>
+                </div>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-weight"></i>
+                <div>
+                    <strong>Weight</strong>
+                    <p>${pet.weight ? pet.weight + ' lbs' : 'Not specified'}</p>
+                </div>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <div>
+                    <strong>Added</strong>
+                    <p>${new Date(pet.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+        </div>
+        
+        ${pet.medical_notes ? `
+            <div class="detail-section">
+                <h4><i class="fas fa-notes-medical"></i> Medical Notes</h4>
+                <p>${pet.medical_notes}</p>
+            </div>
+        ` : ''}
+        
+        ${pet.ai_care_tips ? `
+            <div class="detail-section">
+                <h4><i class="fas fa-lightbulb"></i> AI Care Tips</h4>
+                <div class="care-tips-content">${formatCareTips(pet.ai_care_tips)}</div>
+            </div>
+        ` : ''}
+    `;
+    
+    modal.classList.remove('hidden');
 }
 
 // Delete pet

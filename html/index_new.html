@@ -75,7 +75,6 @@
             <div class="section-card">
                 <div class="section-header">
                     <h3>Your Pets</h3>
-                    <a href="#" class="view-all-link">View All</a>
                 </div>
                 <div id="petList" class="pets-list">
                     <!-- Pet cards will be inserted here dynamically -->
@@ -166,6 +165,19 @@
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js?v=8"></script>
+    <!-- Pet Details Modal -->
+    <div id="petDetailsModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Pet Details</h3>
+                <button class="close-btn" onclick="document.getElementById('petDetailsModal').classList.add('hidden')">&times;</button>
+            </div>
+            <div id="petDetailsContent" class="pet-details-body">
+                <!-- Pet details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js?v=9"></script>
 </body>
 </html>
