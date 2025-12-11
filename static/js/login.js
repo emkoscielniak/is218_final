@@ -16,15 +16,16 @@ document.getElementById('loginFormElement').addEventListener('submit', async fun
     messageDiv.textContent = '';
     messageDiv.className = 'message';
     
-    const formData = new URLSearchParams();
-    formData.append('username', document.getElementById('loginUsername').value);
-    formData.append('password', document.getElementById('loginPassword').value);
+    const loginData = {
+        username: document.getElementById('loginUsername').value,
+        password: document.getElementById('loginPassword').value
+    };
     
     try {
         const response = await fetch('/users/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(loginData)
         });
         
         if (response.ok) {

@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Fredoka', sans-serif;
-    background: #D9A894;
+    background: #EAB595;
     color: #6B5B7A;
     min-height: 100vh;
     display: flex;
@@ -126,8 +126,8 @@ button:hover {
 }
 
 .error {
-    background: rgba(211, 155, 166, 0.3);
-    color: #6B5B7A;
+    background: rgba(174, 99, 120, 0.3);
+    color: #AE6378;
 }
 
 .success {
@@ -168,7 +168,7 @@ button:hover {
 /* Right Side - Home Screen */
 .right-side {
     flex: 1;
-    background: #D9A894;
+    background: #EAB595;
     padding: 60px;
     display: flex;
     flex-direction: column;
@@ -218,7 +218,17 @@ button:hover {
     }
 
     .right-side {
-        min-height: 40vh;
+        display: none;
+    }
+
+    .left-side {
+        padding: 40px 20px;
+        align-items: center;
+        text-align: center;
+    }
+
+    .form-container {
+        max-width: 100%;
     }
 
     .tagline {

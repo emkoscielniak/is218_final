@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetWell - Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="stylesheet" href="/static/styles/dashboard.css?v=7">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <h1 class="logo"><i class="fas fa-paw"></i> PetWell</h1>
+        </div>
+        <div class="nav-center">
+            <a href="#" class="nav-link active">Dashboard</a>
+            <a href="#" class="nav-link">My Pets</a>
+            <a href="#" class="nav-link">Appointments</a>
+            <a href="#" class="nav-link">Health Records</a>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn"><i class="fas fa-bell"></i></button>
+            <div class="user-avatar" id="userAvatar">JD</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="content-area">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h2 class="welcome-text">Welcome back! <i class="fas fa-hand-wave"></i></h2>
+                <p class="welcome-subtext">Here's what's happening with your pets today</p>
+            </div>
+
+            <!-- Quick Actions Grid -->
+            <div class="quick-actions-grid">
+                <div class="action-card">
+                    <div class="action-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="action-content">
+                        <h3>Log Activity</h3>
+                        <p>Track daily activities</p>
+                    </div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon"><i class="fas fa-pills"></i></div>
+                    <div class="action-content">
+                        <h3>Add Medication</h3>
+                        <p>Manage prescriptions</p>
+                    </div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="action-content">
+                        <h3>View Reports</h3>
+                        <p>Health analytics</p>
+                    </div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon"><i class="fas fa-hospital"></i></div>
+                    <div class="action-content">
+                        <h3>Find Vet</h3>
+                        <p>Locate nearby clinics</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Pets Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3>Your Pets</h3>
+                    <a href="#" class="view-all-link">View All</a>
+                </div>
+                <div id="petList" class="pets-list">
+                    <!-- Pet cards will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <aside class="sidebar">
+            <!-- Add New Pet Button -->
+            <button class="btn-primary" id="addPetBtn" style="width: 100%; margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> Add New Pet</button>
+            
+            <!-- Upcoming Events -->
+            <div class="sidebar-card">
+                <h4>Upcoming Events</h4>
+                <div id="upcomingEvents" class="events-list">
+                    <!-- Events will be inserted dynamically -->
+                </div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="sidebar-card">
+                <h4>Reminders</h4>
+                <div id="reminders" class="reminders-list">
+                    <!-- Reminders will be inserted dynamically -->
+                </div>
+                <button class="add-reminder-btn">+ Add Reminder</button>
+            </div>
+
+            <!-- Quick Actions (Mobile) -->
+            <div class="sidebar-card mobile-only">
+                <h4>Quick Actions</h4>
+                <div class="quick-actions-list">
+                    <button class="quick-action-item"><i class="fas fa-clipboard-list"></i> Log Activity</button>
+                    <button class="quick-action-item"><i class="fas fa-pills"></i> Add Medication</button>
+                    <button class="quick-action-item"><i class="fas fa-chart-line"></i> View Reports</button>
+                    <button class="quick-action-item"><i class="fas fa-hospital"></i> Find Vet</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Add Pet Modal -->
+    <div id="addPetModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Pet</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <form id="addPetForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="petName">Pet Name *</label>
+                        <input type="text" id="petName" placeholder="e.g., Buddy" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="petSpecies">Species *</label>
+                        <select id="petSpecies" required>
+                            <option value="">Select Species</option>
+                            <option value="dog">🐕 Dog</option>
+                            <option value="cat">🐈 Cat</option>
+                            <option value="bird">🐦 Bird</option>
+                            <option value="fish">🐠 Fish</option>
+                            <option value="rabbit">🐰 Rabbit</option>
+                            <option value="other">🐾 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="petBreed">Breed</label>
+                        <input type="text" id="petBreed" placeholder="e.g., Golden Retriever">
+                    </div>
+                    <div class="form-group">
+                        <label for="petAge">Age (years)</label>
+                        <input type="number" id="petAge" min="0" max="50" placeholder="e.g., 3">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="petWeight">Weight (lbs)</label>
+                    <input type="number" id="petWeight" min="0.1" max="500" step="0.1" placeholder="e.g., 45.5">
+                </div>
+                <div class="form-group">
+                    <label for="petMedicalNotes">Medical Notes</label>
+                    <textarea id="petMedicalNotes" placeholder="Any medical conditions or special care instructions..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary btn-block">Add Pet & Get AI Care Tips</button>
+            </form>
+            <div id="addPetMessage"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js?v=8"></script>
+</body>
+</html>

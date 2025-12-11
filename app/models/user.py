@@ -7,7 +7,7 @@ from sqlalchemy import Column, String, DateTime, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.exc import IntegrityError
-import hashlib
+from passlib.context import CryptContext
 from jose import JWTError, jwt
 from pydantic import ValidationError
 
@@ -15,15 +15,8 @@ from app.database import Base
 from app.schemas.base import UserCreate
 from app.schemas.user import UserResponse, Token
 
-# Use simple SHA256 hashing for demo purposes (not for production)
-def simple_hash(password: str) -> str:
-    """Simple password hashing using SHA256 + salt for demo purposes."""
-    salt = "demo_salt_2024"
-    return hashlib.sha256((password + salt).encode()).hexdigest()
-
-def verify_simple_hash(password: str, hashed: str) -> bool:
-    """Verify password against simple hash."""
-    return simple_hash(password) == hashed
+# Use bcrypt for password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Move to config
 SECRET_KEY = "your-secret-key"
@@ -52,12 +45,12 @@ class User(Base):
 
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hash a password using simple SHA256 (demo purposes only)."""
-        return simple_hash(password)
+        """Hash a password using bcrypt."""
+        return pwd_context.hash(password)
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain password against the hashed password."""
-        return verify_simple_hash(plain_password, self.password_hash)
+        return pwd_context.verify(plain_password, self.password_hash)
 
     @staticmethod
     def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

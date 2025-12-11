@@ -75,7 +75,7 @@ async def dashboard(request: Request):
     """
     Serve the dashboard/index page for logged-in users.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index_new.html", {"request": request})
 
 @app.get("/register")
 async def register_page(request: Request):
