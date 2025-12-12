@@ -221,6 +221,88 @@
         </div>
     </div>
 
+    <!-- Edit Pet Modal -->
+    <div id="editPetModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Pet</h3>
+                <button class="close-btn" id="closeEditModal">&times;</button>
+            </div>
+            <form id="editPetForm">
+                <input type="hidden" id="editPetId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editPetName">Pet Name *</label>
+                        <input type="text" id="editPetName" placeholder="e.g., Buddy" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPetSpecies">Species *</label>
+                        <select id="editPetSpecies" required>
+                            <option value="">Select Species</option>
+                            <option value="dog">🐕 Dog</option>
+                            <option value="cat">🐈 Cat</option>
+                            <option value="bird">🐦 Bird</option>
+                            <option value="fish">🐠 Fish</option>
+                            <option value="rabbit">🐰 Rabbit</option>
+                            <option value="other">🐾 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPetSex">Sex</label>
+                        <select id="editPetSex">
+                            <option value="">Select Sex</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="unknown">Unknown</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPetBirthday">Birthday</label>
+                        <input type="date" id="editPetBirthday">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editPetBreedType">Breed Type</label>
+                    <select id="editPetBreedType">
+                        <option value="">Select Breed Type</option>
+                        <option value="purebred">Purebred</option>
+                        <option value="mix">Mix</option>
+                    </select>
+                </div>
+                <div id="editBreedInputs">
+                    <div class="form-group" id="editBreedPrimaryGroup" style="display: none;">
+                        <label for="editPetBreed">Breed *</label>
+                        <input type="text" id="editPetBreed" placeholder="e.g., Golden Retriever">
+                    </div>
+                    <div class="form-group" id="editBreedSecondaryGroup" style="display: none;">
+                        <label for="editPetBreedSecondary">Second Breed *</label>
+                        <input type="text" id="editPetBreedSecondary" placeholder="e.g., Labrador">
+                    </div>
+                    <div class="form-group" id="editBreedTertiaryGroup" style="display: none;">
+                        <label for="editPetBreedTertiary">Third Breed (Optional)</label>
+                        <input type="text" id="editPetBreedTertiary" placeholder="e.g., Poodle">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editPetAge">Age (years)</label>
+                        <input type="number" id="editPetAge" min="0" max="50" placeholder="e.g., 3">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPetWeight">Weight (lbs)</label>
+                        <input type="number" id="editPetWeight" min="0.1" max="500" step="0.1" placeholder="e.g., 45.5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editPetMedicalNotes">Medical Notes</label>
+                    <textarea id="editPetMedicalNotes" placeholder="Any medical conditions or special care instructions..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary btn-block"><i class="fas fa-save"></i> Save Changes</button>
+            </form>
+            <div id="editPetMessage"></div>
+        </div>
+    </div>
+
     <!-- Log Activity Modal -->
     <div id="logActivityModal" class="modal hidden">
         <div class="modal-content">

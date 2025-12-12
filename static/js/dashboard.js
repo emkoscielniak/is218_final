@@ -70,26 +70,31 @@ function displayPets(pets) {
         return;
     }
 
-    petList.innerHTML = pets.map(pet => `
-        <div class="pet-card" data-pet-id="${pet.id}">
+    petList.innerHTML = pets.map(pet => {
+        // Build breed display for mixed breeds
+        const breeds = [pet.breed, pet.breed_secondary, pet.breed_tertiary].filter(b => b).join(' / ');
+        const breedDisplay = breeds || '';
+        
+        return `
+        <div class="pet-card" data-pet-id="${pet.id}" onclick="viewPetDetails(${pet.id})" style="cursor: pointer;">
             <div class="pet-info">
                 <div class="pet-image">
                     ${getSpeciesIcon(pet.species)}
                 </div>
                 <div class="pet-details">
                     <h4>${pet.name}</h4>
-                    <p class="pet-meta">${pet.species}${pet.breed ? ' • ' + pet.breed : ''} • ${pet.age || 'N/A'} years</p>
+                    <p class="pet-meta">${pet.species}${breedDisplay ? ' • ' + breedDisplay : ''} • ${pet.age || 'N/A'} years</p>
                 </div>
             </div>
             <div class="pet-status">
                 <span class="status-badge healthy">HEALTHY</span>
                 <div class="pet-actions">
-                    <button class="btn-icon" onclick="viewPetDetails(${pet.id})" title="View Details"><i class="fas fa-eye"></i></button>
-                    <button class="btn-icon" onclick="deletePet(${pet.id})" title="Delete"><i class="fas fa-trash"></i></button>
+                    <button class="btn-icon" onclick="event.stopPropagation(); deletePet(${pet.id})" title="Delete"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Get species icon
@@ -295,6 +300,13 @@ function showPetDetailsModal(pet) {
     const modal = document.getElementById('petDetailsModal');
     const modalContent = document.getElementById('petDetailsContent');
     
+    // Build breed display (show all breeds for mixed breeds)
+    let breedDisplay = pet.breed || '';
+    if (pet.breed_secondary || pet.breed_tertiary) {
+        const breeds = [pet.breed, pet.breed_secondary, pet.breed_tertiary].filter(b => b);
+        breedDisplay = breeds.join(' / ');
+    }
+    
     modalContent.innerHTML = `
         <div class="pet-details-header">
             <div class="pet-image-large">
@@ -302,7 +314,7 @@ function showPetDetailsModal(pet) {
             </div>
             <div>
                 <h2>${pet.name}</h2>
-                <p class="pet-meta">${pet.species}${pet.breed ? ' • ' + pet.breed : ''}</p>
+                <p class="pet-meta">${pet.species}${breedDisplay ? ' • ' + breedDisplay : ''}</p>
             </div>
         </div>
         
@@ -322,10 +334,10 @@ function showPetDetailsModal(pet) {
                 </div>
             </div>
             <div class="detail-item">
-                <i class="fas fa-calendar"></i>
+                <i class="fas fa-venus-mars"></i>
                 <div>
-                    <strong>Added</strong>
-                    <p>${new Date(pet.created_at).toLocaleDateString()}</p>
+                    <strong>Sex</strong>
+                    <p>${pet.sex ? pet.sex.charAt(0).toUpperCase() + pet.sex.slice(1) : 'Not specified'}</p>
                 </div>
             </div>
         </div>
@@ -343,6 +355,10 @@ function showPetDetailsModal(pet) {
                 <div class="care-tips-content">${formatCareTips(pet.ai_care_tips)}</div>
             </div>
         ` : ''}
+        
+        <div class="modal-actions" style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn-primary" onclick="openEditPetModal(${pet.id})" style="flex: 1;"><i class="fas fa-edit"></i> Edit Pet</button>
+        </div>
     `;
     
     modal.classList.remove('hidden');
@@ -372,6 +388,152 @@ async function deletePet(petId) {
         alert(`Error: ${error.message}`);
     }
 }
+
+// Open edit pet modal
+async function openEditPetModal(petId) {
+    try {
+        const response = await fetch(`/pets/${petId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load pet details');
+        }
+
+        const pet = await response.json();
+        
+        // Populate form with pet data
+        document.getElementById('editPetId').value = pet.id;
+        document.getElementById('editPetName').value = pet.name;
+        document.getElementById('editPetSpecies').value = pet.species;
+        document.getElementById('editPetSex').value = pet.sex || '';
+        document.getElementById('editPetBirthday').value = pet.birthday || '';
+        document.getElementById('editPetBreedType').value = pet.breed_type || '';
+        document.getElementById('editPetBreed').value = pet.breed || '';
+        document.getElementById('editPetBreedSecondary').value = pet.breed_secondary || '';
+        document.getElementById('editPetBreedTertiary').value = pet.breed_tertiary || '';
+        document.getElementById('editPetAge').value = pet.age || '';
+        document.getElementById('editPetWeight').value = pet.weight || '';
+        document.getElementById('editPetMedicalNotes').value = pet.medical_notes || '';
+        
+        // Show appropriate breed fields based on breed type
+        handleEditBreedTypeChange();
+        
+        // Close pet details modal and open edit modal
+        document.getElementById('petDetailsModal').classList.add('hidden');
+        document.getElementById('editPetModal').classList.remove('hidden');
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Handle edit breed type change
+function handleEditBreedTypeChange() {
+    const breedType = document.getElementById('editPetBreedType').value;
+    const primaryGroup = document.getElementById('editBreedPrimaryGroup');
+    const secondaryGroup = document.getElementById('editBreedSecondaryGroup');
+    const tertiaryGroup = document.getElementById('editBreedTertiaryGroup');
+    
+    if (breedType === 'purebred') {
+        primaryGroup.style.display = 'block';
+        secondaryGroup.style.display = 'none';
+        tertiaryGroup.style.display = 'none';
+        document.getElementById('editPetBreed').required = true;
+        document.getElementById('editPetBreedSecondary').required = false;
+    } else if (breedType === 'mix') {
+        primaryGroup.style.display = 'block';
+        secondaryGroup.style.display = 'block';
+        tertiaryGroup.style.display = 'block';
+        document.getElementById('editPetBreed').required = true;
+        document.getElementById('editPetBreedSecondary').required = true;
+    } else {
+        primaryGroup.style.display = 'none';
+        secondaryGroup.style.display = 'none';
+        tertiaryGroup.style.display = 'none';
+        document.getElementById('editPetBreed').required = false;
+        document.getElementById('editPetBreedSecondary').required = false;
+    }
+}
+
+// Handle edit pet form submission
+async function handleEditPet(e) {
+    e.preventDefault();
+    
+    const messageDiv = document.getElementById('editPetMessage');
+    const petId = document.getElementById('editPetId').value;
+    
+    const petData = {
+        name: document.getElementById('editPetName').value,
+        species: document.getElementById('editPetSpecies').value
+    };
+    
+    // Add optional fields
+    const sex = document.getElementById('editPetSex').value;
+    if (sex) petData.sex = sex;
+    
+    const birthday = document.getElementById('editPetBirthday').value;
+    if (birthday) petData.birthday = birthday;
+    
+    const breedType = document.getElementById('editPetBreedType').value;
+    if (breedType) petData.breed_type = breedType;
+    
+    const breed = document.getElementById('editPetBreed').value;
+    if (breed) petData.breed = breed;
+    
+    const breedSecondary = document.getElementById('editPetBreedSecondary').value;
+    if (breedSecondary) petData.breed_secondary = breedSecondary;
+    
+    const breedTertiary = document.getElementById('editPetBreedTertiary').value;
+    if (breedTertiary) petData.breed_tertiary = breedTertiary;
+    
+    const age = document.getElementById('editPetAge').value;
+    if (age) petData.age = parseInt(age);
+    
+    const weight = document.getElementById('editPetWeight').value;
+    if (weight) petData.weight = parseFloat(weight);
+    
+    const medicalNotes = document.getElementById('editPetMedicalNotes').value;
+    if (medicalNotes) petData.medical_notes = medicalNotes;
+    
+    try {
+        const response = await fetch(`/pets/${petId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(petData)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to update pet');
+        }
+
+        const updatedPet = await response.json();
+
+        // Show success message
+        messageDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Pet updated successfully!</div>';
+        messageDiv.style.display = 'block';
+
+        // Reload pets
+        await loadPets();
+
+        // Close modal after 1 second
+        setTimeout(() => {
+            document.getElementById('editPetModal').classList.add('hidden');
+            messageDiv.innerHTML = '';
+            messageDiv.style.display = 'none';
+        }, 1000);
+
+    } catch (error) {
+        messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.message}</div>`;
+        messageDiv.style.display = 'block';
+    }
+}
+
 
 // Load upcoming events (placeholder)
 // Load upcoming events from reminders, medications, and activities
@@ -592,6 +754,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const addReminderBtn = document.querySelector('.add-reminder-btn');
     if (addReminderBtn) {
         addReminderBtn.addEventListener('click', openAddReminderModal);
+    }
+    
+    // Close edit pet modal
+    const closeEditModal = document.getElementById('closeEditModal');
+    if (closeEditModal) {
+        closeEditModal.addEventListener('click', () => {
+            document.getElementById('editPetModal').classList.add('hidden');
+            document.getElementById('editPetMessage').innerHTML = '';
+            document.getElementById('editPetMessage').style.display = 'none';
+        });
+    }
+    
+    // Edit pet breed type change
+    const editPetBreedType = document.getElementById('editPetBreedType');
+    if (editPetBreedType) {
+        editPetBreedType.addEventListener('change', handleEditBreedTypeChange);
+    }
+    
+    // Edit pet birthday auto-calculate age
+    const editPetBirthday = document.getElementById('editPetBirthday');
+    if (editPetBirthday) {
+        editPetBirthday.addEventListener('change', () => {
+            const birthday = new Date(editPetBirthday.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthday.getFullYear();
+            const monthDiff = today.getMonth() - birthday.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+                age--;
+            }
+            if (age >= 0) {
+                document.getElementById('editPetAge').value = age;
+            }
+        });
+    }
+    
+    // Edit pet form submit
+    const editPetForm = document.getElementById('editPetForm');
+    if (editPetForm) {
+        editPetForm.addEventListener('submit', handleEditPet);
     }
     
     // Close reminder modal
