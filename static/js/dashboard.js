@@ -316,60 +316,157 @@ async function deletePet(petId) {
 }
 
 // Load upcoming events (placeholder)
-function loadUpcomingEvents() {
+// Load upcoming events from reminders, medications, and activities
+async function loadUpcomingEvents() {
     const eventsDiv = document.getElementById('upcomingEvents');
-    // Placeholder events
-    eventsDiv.innerHTML = `
-        <div class="event-item">
-            <div class="event-date">
-                <span class="day">12</span>
-                <span class="month">DEC</span>
-            </div>
-            <div class="event-details">
-                <h5>Vet Checkup - Luna</h5>
-                <p>10:00 AM<br>City Vet Clinic</p>
-            </div>
-        </div>
-        <div class="event-item">
-            <div class="event-date">
-                <span class="day">20</span>
-                <span class="month">DEC</span>
-            </div>
-            <div class="event-details">
-                <h5>Vaccination - Max</h5>
-                <p>2:30 PM<br>Pet Care Center</p>
-            </div>
-        </div>
-    `;
+    
+    try {
+        // Fetch all data sources in parallel
+        const [remindersRes, medicationsRes, activitiesRes, petsRes] = await Promise.all([
+            fetch('/reminders?completed=false', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/medications?active_only=true', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/activities', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/pets', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
+        
+        const reminders = remindersRes.ok ? await remindersRes.json() : [];
+        const medications = medicationsRes.ok ? await medicationsRes.json() : [];
+        const activities = activitiesRes.ok ? await activitiesRes.json() : [];
+        const pets = petsRes.ok ? await petsRes.json() : [];
+        
+        // Create pet lookup map
+        const petMap = {};
+        pets.forEach(pet => petMap[pet.id] = pet.name);
+        
+        // Aggregate all events
+        const events = [];
+        const now = new Date();
+        
+        // Add reminders as events
+        reminders.forEach(reminder => {
+            const date = new Date(reminder.reminder_date);
+            if (date > now) {
+                events.push({
+                    date: date,
+                    type: reminder.reminder_type,
+                    title: reminder.title,
+                    petName: reminder.pet_id ? petMap[reminder.pet_id] : null,
+                    description: reminder.description,
+                    icon: getReminderTypeIcon(reminder.reminder_type)
+                });
+            }
+        });
+        
+        // Add medication reminders (upcoming doses)
+        medications.forEach(med => {
+            const startDate = new Date(med.start_date);
+            const endDate = med.end_date ? new Date(med.end_date) : null;
+            
+            // If medication is ongoing and has frequency info
+            if (startDate < now && (!endDate || endDate > now)) {
+                // Create a "next dose" event for today or tomorrow
+                const nextDose = new Date();
+                nextDose.setHours(9, 0, 0, 0); // Default to 9 AM
+                
+                if (nextDose < now) {
+                    nextDose.setDate(nextDose.getDate() + 1);
+                }
+                
+                events.push({
+                    date: nextDose,
+                    type: 'medication',
+                    title: `${med.name} - ${med.dosage}`,
+                    petName: petMap[med.pet_id],
+                    description: `${med.frequency} • ${med.route}`,
+                    icon: '<i class="fas fa-pills"></i>'
+                });
+            }
+        });
+        
+        // Add future activities
+        activities.forEach(activity => {
+            const date = new Date(activity.activity_date);
+            if (date > now) {
+                events.push({
+                    date: date,
+                    type: activity.activity_type,
+                    title: activity.title,
+                    petName: petMap[activity.pet_id],
+                    description: activity.description,
+                    icon: getActivityTypeIcon(activity.activity_type)
+                });
+            }
+        });
+        
+        // Sort by date and take next 5
+        events.sort((a, b) => a.date - b.date);
+        const upcomingEvents = events.slice(0, 5);
+        
+        if (upcomingEvents.length === 0) {
+            eventsDiv.innerHTML = '<p class="no-data">No upcoming events</p>';
+            return;
+        }
+        
+        // Display events
+        eventsDiv.innerHTML = upcomingEvents.map(event => {
+            const day = event.date.getDate();
+            const month = event.date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+            const time = event.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const petInfo = event.petName ? ` - ${event.petName}` : '';
+            
+            return `
+                <div class="event-item">
+                    <div class="event-date">
+                        <span class="day">${day}</span>
+                        <span class="month">${month}</span>
+                    </div>
+                    <div class="event-details">
+                        <h5>${event.icon} ${event.title}${petInfo}</h5>
+                        <p>${time}${event.description ? '<br>' + event.description : ''}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error loading upcoming events:', error);
+        eventsDiv.innerHTML = '<p class="no-data">Error loading events</p>';
+    }
 }
 
-// Load reminders (placeholder)
-function loadReminders() {
-    const remindersDiv = document.getElementById('reminders');
-    // Placeholder reminders
-    remindersDiv.innerHTML = `
-        <div class="reminder-item">
-            <div class="reminder-checkbox"></div>
-            <div class="reminder-content">
-                <h5>Give Luna her medication</h5>
-                <p>Today, 6:00 PM</p>
-            </div>
-        </div>
-        <div class="reminder-item">
-            <div class="reminder-checkbox"></div>
-            <div class="reminder-content">
-                <h5>Max's flea treatment</h5>
-                <p>Tomorrow</p>
-            </div>
-        </div>
-        <div class="reminder-item">
-            <div class="reminder-checkbox"></div>
-            <div class="reminder-content">
-                <h5>Order Charlie's food</h5>
-                <p>Dec 15</p>
-            </div>
-        </div>
-    `;
+// Get icon for reminder type
+function getReminderTypeIcon(type) {
+    const iconMap = {
+        'medication': '<i class="fas fa-pills"></i>',
+        'appointment': '<i class="fas fa-calendar-check"></i>',
+        'vaccination': '<i class="fas fa-syringe"></i>',
+        'grooming': '<i class="fas fa-cut"></i>',
+        'other': '<i class="fas fa-bell"></i>'
+    };
+    return iconMap[type] || '<i class="fas fa-bell"></i>';
+}
+
+// Get icon for activity type
+function getActivityTypeIcon(type) {
+    const iconMap = {
+        'walk': '<i class="fas fa-walking"></i>',
+        'feeding': '<i class="fas fa-utensils"></i>',
+        'medication': '<i class="fas fa-pills"></i>',
+        'vet_visit': '<i class="fas fa-user-md"></i>',
+        'grooming': '<i class="fas fa-cut"></i>',
+        'play': '<i class="fas fa-futbol"></i>',
+        'training': '<i class="fas fa-graduation-cap"></i>',
+        'other': '<i class="fas fa-paw"></i>'
+    };
+    return iconMap[type] || '<i class="fas fa-paw"></i>';
 }
 
 // Initialize dashboard
