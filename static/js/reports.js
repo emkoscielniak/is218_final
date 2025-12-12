@@ -119,14 +119,10 @@ function updateSummaryCards() {
     // Active medications
     document.getElementById('activeMedications').textContent = medications.length;
     
-    // Calculate health score (simple algorithm based on activity frequency)
+    // This week activities
     const lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() - 7);
     const recentActivities = activities.filter(a => new Date(a.activity_date) >= lastWeek);
-    const healthScore = Math.min(100, Math.round((recentActivities.length / 7) * 20 + 50));
-    document.getElementById('healthScore').textContent = healthScore;
-    
-    // This week activities
     document.getElementById('thisWeekActivities').textContent = recentActivities.length;
 }
 
