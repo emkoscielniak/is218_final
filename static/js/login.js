@@ -39,7 +39,12 @@ document.getElementById('loginFormElement').addEventListener('submit', async fun
             }, 1000);
         } else {
             const data = await response.json();
-            messageDiv.textContent = data.detail || 'Login failed';
+            // Check if it's an email verification error (403)
+            if (response.status === 403) {
+                messageDiv.innerHTML = data.detail || 'Please verify your email before logging in.';
+            } else {
+                messageDiv.textContent = data.detail || 'Login failed';
+            }
             messageDiv.className = 'message error';
         }
     } catch (error) {

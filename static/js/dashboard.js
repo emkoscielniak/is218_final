@@ -153,6 +153,32 @@ modal.addEventListener('click', (e) => {
 });
 
 // Add pet form submission
+// Birthday change handler - auto-calculate age
+document.getElementById('petBirthday')?.addEventListener('change', (e) => {
+    const birthday = e.target.value;
+    if (birthday) {
+        const birthDate = new Date(birthday);
+        const today = new Date();
+        
+        // Calculate age in years
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        // Adjust age if birthday hasn't occurred this year yet
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        // Set age to 0 if negative (future date)
+        if (age < 0) {
+            age = 0;
+        }
+        
+        // Update age field
+        document.getElementById('petAge').value = age;
+    }
+});
+
 // Breed type toggle handler
 document.getElementById('petBreedType')?.addEventListener('change', (e) => {
     const breedType = e.target.value;

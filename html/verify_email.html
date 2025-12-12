@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - PetWell</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary-color: #ec4899;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .verification-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            font-family: 'Bubblegum Sans', cursive;
+            font-size: 32px;
+            color: var(--primary-color);
+        }
+
+        .logo i {
+            font-size: 40px;
+        }
+
+        .status-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .status-icon.loading {
+            color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        .status-icon.success {
+            color: var(--success-color);
+            animation: scaleIn 0.5s ease;
+        }
+
+        .status-icon.error {
+            color: var(--error-color);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        h1 {
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .message {
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #loadingState, #successState, #errorState {
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="logo">
+            <i class="fas fa-paw"></i>
+            <span>PetWell</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState">
+            <div class="status-icon loading">
+                <i class="fas fa-circle-notch"></i>
+            </div>
+            <h1>Verifying Your Email...</h1>
+            <p class="message">Please wait while we verify your email address.</p>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState">
+            <div class="status-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1 id="successTitle">Email Verified!</h1>
+            <p class="message" id="successMessage">
+                Your email has been successfully verified. You can now log in and start using PetWell.
+            </p>
+            <div class="action-buttons">
+                <a href="/login" class="btn">
+                    <i class="fas fa-sign-in-alt"></i> Go to Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState">
+            <div class="status-icon error">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h1>Verification Failed</h1>
+            <p class="message" id="errorMessage">
+                We couldn't verify your email. The link may have expired or is invalid.
+            </p>
+            <div class="action-buttons">
+                <button onclick="resendVerification()" class="btn" id="resendBtn">
+                    <i class="fas fa-envelope"></i> Resend Verification
+                </button>
+                <a href="/register" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Register Again
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        async function verifyEmail() {
+            if (!token) {
+                showError('No verification token provided.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loadingState').style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/verify-email?token=${encodeURIComponent(token)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showSuccess(data.message, data.already_verified);
+                } else {
+                    showError(data.detail || 'Verification failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                showError('An error occurred during verification. Please try again.');
+            }
+        }
+
+        function showSuccess(message, alreadyVerified = false) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+            document.getElementById('successMessage').textContent = message;
+            
+            if (alreadyVerified) {
+                document.getElementById('successTitle').textContent = 'Already Verified';
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        async function resendVerification() {
+            const email = prompt('Please enter your email address:');
+            
+            if (!email) {
+                return;
+            }
+
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true;
+            resendBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending...';
+
+            try {
+                const response = await fetch('/api/resend-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert(data.message);
+                    document.getElementById('errorMessage').textContent = 
+                        'A new verification email has been sent. Please check your inbox.';
+                } else {
+                    alert('Failed to resend verification email. Please try again.');
+                }
+            } catch (error) {
+                console.error('Resend error:', error);
+                alert('An error occurred. Please try again.');
+            } finally {
+                resendBtn.disabled = false;
+                resendBtn.innerHTML = '<i class="fas fa-envelope"></i> Resend Verification';
+            }
+        }
+
+        // Start verification when page loads
+        window.addEventListener('DOMContentLoaded', verifyEmail);
+    </script>
+</body>
+</html>

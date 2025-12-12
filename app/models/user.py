@@ -33,6 +33,9 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_verified = Column(Boolean, default=False, nullable=False)
+    verification_token = Column(String(255), nullable=True)
+    verification_token_expires = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -73,6 +76,30 @@ class User(Base):
         except (JWTError, ValueError):
             return None
 
+    @staticmethod
+    def create_verification_token() -> str:
+        """Create a unique verification token."""
+        return str(uuid.uuid4())
+
+    def generate_verification_token(self) -> str:
+        """Generate and set verification token with expiration."""
+        self.verification_token = self.create_verification_token()
+        self.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
+        return self.verification_token
+
+    def verify_email_token(self, token: str) -> bool:
+        """Verify email confirmation token."""
+        if not self.verification_token or not self.verification_token_expires:
+            return False
+        
+        if self.verification_token != token:
+            return False
+        
+        if datetime.utcnow() > self.verification_token_expires:
+            return False
+        
+        return True
+
     @classmethod
     def register(cls, db, user_data: Dict[str, Any]) -> "User":
         """Register a new user with validation."""
@@ -99,8 +126,12 @@ class User(Base):
                 email=user_create.email,
                 username=user_create.username,
                 password_hash=cls.hash_password(user_create.password),
-                is_active=True
+                is_active=True,
+                is_verified=False  # Set to False until email is verified
             )
+            
+            # Generate verification token
+            new_user.generate_verification_token()
             
             db.add(new_user)
             db.flush()

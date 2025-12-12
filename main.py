@@ -21,6 +21,7 @@ from app.schemas.activity import ActivityCreate, ActivityRead, ActivityUpdate
 from app.schemas.medication import MedicationCreate, MedicationRead, MedicationUpdate
 from app.schemas.reminder import ReminderCreate, ReminderRead, ReminderUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
+from app.services.email_service import EmailService
 from typing import List
 import uvicorn
 import logging
@@ -132,6 +133,13 @@ async def login_page(request: Request):
     """
     return templates.TemplateResponse("login.html", {"request": request})
 
+@app.get("/verify-email")
+async def verify_email_page(request: Request):
+    """
+    Serve the email verification page.
+    """
+    return templates.TemplateResponse("verify_email.html", {"request": request})
+
 # User Authentication and Registration Routes
 @app.post("/users/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register_user(
@@ -139,7 +147,7 @@ async def register_user(
     db: Session = Depends(get_db)
 ):
     """
-    Register a new user using UserCreate schema.
+    Register a new user and send verification email.
     """
     try:
         # Truncate password to avoid bcrypt 72-byte limit
@@ -151,6 +159,19 @@ async def register_user(
         user = User.register(db, user_dict)
         db.commit()
         db.refresh(user)
+        
+        # Send verification email asynchronously
+        try:
+            await EmailService.send_verification_email(
+                user_email=user.email,
+                user_name=user.first_name,
+                verification_token=user.verification_token
+            )
+            logger.info(f"Verification email sent to {user.email}")
+        except Exception as email_error:
+            logger.error(f"Failed to send verification email: {str(email_error)}")
+            # Don't fail registration if email fails
+        
         return UserRead.model_validate(user)
     except ValueError as e:
         logger.error(f"User registration error: {str(e)}")
@@ -167,15 +188,29 @@ async def login_user(
 ):
     """
     Authenticate user and return access token verifying hashed passwords.
+    Requires email verification.
     """
     try:
-        token_data = User.authenticate(db, user_credentials.username, user_credentials.password)
-        if not token_data:
+        # Check if user exists and credentials are correct
+        user = db.query(User).filter(
+            (User.username == user_credentials.username) | (User.email == user_credentials.username)
+        ).first()
+        
+        if not user or not user.verify_password(user_credentials.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        
+        # Check if email is verified
+        if not user.is_verified:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Please verify your email before logging in. Check your inbox for the verification link.",
+            )
+        
+        token_data = User.authenticate(db, user_credentials.username, user_credentials.password)
         return token_data
     except HTTPException:
         raise
@@ -201,15 +236,29 @@ async def login_user_legacy(
 ):
     """
     Authenticate user and return access token (legacy endpoint).
+    Requires email verification.
     """
     try:
-        token_data = User.authenticate(db, form_data.username, form_data.password)
-        if not token_data:
+        # Check if user exists and credentials are correct
+        user = db.query(User).filter(
+            (User.username == form_data.username) | (User.email == form_data.username)
+        ).first()
+        
+        if not user or not user.verify_password(form_data.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        
+        # Check if email is verified
+        if not user.is_verified:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Please verify your email before logging in. Check your inbox for the verification link.",
+            )
+        
+        token_data = User.authenticate(db, form_data.username, form_data.password)
         return token_data
     except HTTPException:
         raise
@@ -224,15 +273,29 @@ async def login_user_json(
 ):
     """
     Authenticate user with JSON payload and return access token.
+    Requires email verification.
     """
     try:
-        token_data = User.authenticate(db, user_credentials.username, user_credentials.password)
-        if not token_data:
+        # Check if user exists and credentials are correct
+        user = db.query(User).filter(
+            (User.username == user_credentials.username) | (User.email == user_credentials.username)
+        ).first()
+        
+        if not user or not user.verify_password(user_credentials.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        
+        # Check if email is verified
+        if not user.is_verified:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Please verify your email before logging in. Check your inbox for the verification link.",
+            )
+        
+        token_data = User.authenticate(db, user_credentials.username, user_credentials.password)
         return token_data
     except HTTPException:
         raise
@@ -285,6 +348,116 @@ async def update_user_profile(
         logger.error(f"Update profile error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update profile")
+
+@app.post("/api/verify-email")
+async def verify_email(
+    token: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify user's email address using the verification token.
+    """
+    try:
+        # Find user by verification token
+        user = db.query(User).filter(User.verification_token == token).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid verification token"
+            )
+        
+        # Check if already verified
+        if user.is_verified:
+            return {
+                "success": True,
+                "message": "Email already verified",
+                "already_verified": True
+            }
+        
+        # Verify the token
+        if not user.verify_email_token(token):
+            raise HTTPException(
+                status_code=400,
+                detail="Verification token has expired. Please request a new one."
+            )
+        
+        # Mark user as verified
+        user.is_verified = True
+        user.verification_token = None
+        user.verification_token_expires = None
+        
+        db.commit()
+        
+        logger.info(f"Email verified for user: {user.email}")
+        
+        return {
+            "success": True,
+            "message": "Email verified successfully! You can now log in.",
+            "already_verified": False
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Email verification error: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to verify email"
+        )
+
+@app.post("/api/resend-verification")
+async def resend_verification(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Resend verification email to user.
+    """
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        
+        if not user:
+            # Don't reveal if email exists
+            return {
+                "success": True,
+                "message": "If the email exists, a verification link has been sent."
+            }
+        
+        if user.is_verified:
+            return {
+                "success": True,
+                "message": "Email is already verified."
+            }
+        
+        # Generate new verification token
+        user.generate_verification_token()
+        db.commit()
+        
+        # Send verification email
+        try:
+            await EmailService.send_verification_email(
+                user_email=user.email,
+                user_name=user.first_name,
+                verification_token=user.verification_token
+            )
+            logger.info(f"Verification email resent to {user.email}")
+        except Exception as email_error:
+            logger.error(f"Failed to resend verification email: {str(email_error)}")
+        
+        return {
+            "success": True,
+            "message": "If the email exists, a verification link has been sent."
+        }
+        
+    except Exception as e:
+        logger.error(f"Resend verification error: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to resend verification email"
+        )
 
 class ChangePasswordRequest(BaseModel):
     currentPassword: str
