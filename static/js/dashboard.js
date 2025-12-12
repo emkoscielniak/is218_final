@@ -476,6 +476,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUpcomingEvents();
     loadReminders();
     
+    // Navbar functionality
+    setupNavbar();
+    
     // Log Activity button click handler
     const logActivityBtn = document.getElementById('logActivityBtn');
     if (logActivityBtn) {
@@ -1200,5 +1203,193 @@ async function deleteReminder(id) {
         }
     } catch (error) {
         console.error('Error deleting reminder:', error);
+    }
+}
+
+// Setup navbar functionality
+function setupNavbar() {
+    // User dropdown toggle
+    const userAvatar = document.getElementById('userAvatar');
+    const userDropdown = document.getElementById('userDropdown');
+    
+    if (userAvatar && userDropdown) {
+        userAvatar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                userDropdown.classList.remove('show');
+            }
+        });
+    }
+    
+    // Dashboard link
+    const navDashboard = document.getElementById('navDashboard');
+    if (navDashboard) {
+        navDashboard.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/dashboard';
+        });
+    }
+    
+    // My Pets - go to pets page
+    const navMyPets = document.getElementById('navMyPets');
+    if (navMyPets) {
+        navMyPets.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/pets';
+        });
+    }
+    
+    // Appointments - show appointments modal/filter
+    const navAppointments = document.getElementById('navAppointments');
+    if (navAppointments) {
+        navAppointments.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await showAppointmentsView();
+        });
+    }
+    
+    // Health Records - go to reports page
+    const navHealthRecords = document.getElementById('navHealthRecords');
+    if (navHealthRecords) {
+        navHealthRecords.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/reports';
+        });
+    }
+    
+    // Notifications button
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', () => {
+            showNotifications();
+        });
+    }
+    
+    // Profile link
+    const viewProfile = document.getElementById('viewProfile');
+    if (viewProfile) {
+        viewProfile.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Profile page coming soon!');
+        });
+    }
+    
+    // Settings link
+    const settingsLink = document.getElementById('settingsLink');
+    if (settingsLink) {
+        settingsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Settings page coming soon!');
+        });
+    }
+    
+    // Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
+        });
+    }
+}
+
+// Show appointments view
+async function showAppointmentsView() {
+    try {
+        // Fetch reminders filtered by appointment types
+        const response = await fetch('/reminders?completed=false', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const allReminders = await response.json();
+            const appointments = allReminders.filter(r => 
+                r.reminder_type === 'appointment' || 
+                r.reminder_type === 'vaccination' || 
+                r.reminder_type === 'grooming'
+            );
+            
+            // Get pets for name lookup
+            const petsRes = await fetch('/pets', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const pets = petsRes.ok ? await petsRes.json() : [];
+            const petMap = {};
+            pets.forEach(pet => petMap[pet.id] = pet.name);
+            
+            // Create appointments display
+            const appointmentsHtml = appointments.length > 0 ? appointments.map(apt => {
+                const date = new Date(apt.reminder_date);
+                const petInfo = apt.pet_id ? ` - ${petMap[apt.pet_id]}` : '';
+                return `
+                    <div class="appointment-card">
+                        <div class="appointment-icon">${getReminderIcon(apt.reminder_type)}</div>
+                        <div class="appointment-details">
+                            <h4>${apt.title}${petInfo}</h4>
+                            <p><i class="fas fa-calendar"></i> ${date.toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            })}</p>
+                            <p><i class="fas fa-clock"></i> ${date.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit', 
+                                hour12: true 
+                            })}</p>
+                            ${apt.description ? `<p class="apt-description">${apt.description}</p>` : ''}
+                        </div>
+                        <div class="appointment-actions">
+                            <button onclick="completeReminder(${apt.id})" class="btn-complete">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p class="no-data">No upcoming appointments</p>';
+            
+            // Show in a custom alert/modal
+            const modalHtml = `
+                <div class="appointments-overlay" onclick="this.remove()">
+                    <div class="appointments-modal" onclick="event.stopPropagation()">
+                        <div class="appointments-header">
+                            <h3><i class="fas fa-calendar-check"></i> Upcoming Appointments</h3>
+                            <button class="close-btn" onclick="this.closest('.appointments-overlay').remove()">&times;</button>
+                        </div>
+                        <div class="appointments-body">
+                            ${appointmentsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        alert('Error loading appointments');
+    }
+}
+
+// Show notifications
+function showNotifications() {
+    // For now, show reminders that are due today or overdue
+    loadReminders().then(() => {
+        alert('Check the Reminders section for your notifications!');
+    });
+}
+
+// Handle logout
+function handleLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
     }
 }

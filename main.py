@@ -90,6 +90,13 @@ async def reports(request: Request):
     """
     return templates.TemplateResponse("reports.html", {"request": request})
 
+@app.get("/pets")
+async def pets_page(request: Request):
+    """
+    Serve the pets management page.
+    """
+    return templates.TemplateResponse("pets.html", {"request": request})
+
 @app.get("/register")
 async def register_page(request: Request):
     """

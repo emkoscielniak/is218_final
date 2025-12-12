@@ -19,14 +19,21 @@
             <h1 class="logo"><i class="fas fa-paw"></i> PetWell</h1>
         </div>
         <div class="nav-center">
-            <a href="#" class="nav-link active">Dashboard</a>
-            <a href="#" class="nav-link">My Pets</a>
-            <a href="#" class="nav-link">Appointments</a>
-            <a href="#" class="nav-link">Health Records</a>
+            <a href="/dashboard" class="nav-link active" id="navDashboard">Dashboard</a>
+            <a href="/pets" class="nav-link" id="navMyPets">My Pets</a>
+            <a href="#" class="nav-link" id="navAppointments">Appointments</a>
+            <a href="/reports" class="nav-link" id="navHealthRecords">Health Records</a>
         </div>
         <div class="nav-right">
-            <button class="icon-btn"><i class="fas fa-bell"></i></button>
-            <div class="user-avatar" id="userAvatar">JD</div>
+            <button class="icon-btn" id="notificationBtn" title="Notifications"><i class="fas fa-bell"></i></button>
+            <div class="user-menu">
+                <div class="user-avatar" id="userAvatar">JD</div>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="#" id="viewProfile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -398,6 +405,6 @@
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js?v=12"></script>
+    <script src="/static/js/dashboard.js?v=13"></script>
 </body>
 </html>
