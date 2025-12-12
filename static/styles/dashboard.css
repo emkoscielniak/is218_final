@@ -64,7 +64,7 @@ body {
 
 .nav-brand {
     font-family: 'Bubblegum Sans', cursive;
-    font-size: 1.8rem;
+    font-size: 2.3rem;
     color: var(--text-dark);
     display: flex;
     align-items: center;
@@ -78,19 +78,22 @@ body {
 }
 
 .nav-brand i {
-    font-size: 2rem;
+    font-size: 2.5rem;
     color: var(--primary-color);
 }
 
 .nav-links {
     display: flex;
-    gap: 24px;
+    gap: 0;
     align-items: center;
+    flex: 1;
+    justify-content: space-evenly;
+    margin: 0 60px;
 }
 
 .nav-links a {
     font-family: 'Fredoka', sans-serif;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 500;
     color: var(--text-dark);
     text-decoration: none;
