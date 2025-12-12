@@ -28,11 +28,10 @@ async function setUserAvatar() {
         
         if (response.ok) {
             const user = await response.json();
-            const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
-            document.getElementById('userAvatar').textContent = initials || 'U';
+            document.getElementById('navUsername').textContent = user.username;
         }
     } catch (error) {
-        console.error('Error loading user:', error);
+        console.error('Error loading user info:', error);
     }
 }
 
@@ -412,22 +411,22 @@ async function handleAddAppointment(e) {
 
 // Setup navbar
 function setupNavbar() {
-    // User dropdown toggle
-    const userAvatar = document.getElementById('userAvatar');
+    const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
     
-    if (userAvatar && userDropdown) {
-        userAvatar.addEventListener('click', (e) => {
+    if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            userDropdown.classList.toggle('show');
+            userDropdown.classList.toggle('hidden');
         });
         
-        document.addEventListener('click', () => {
-            userDropdown.classList.remove('show');
+        document.addEventListener('click', (e) => {
+            if (!userMenuBtn.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
         });
     }
     
-    // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {

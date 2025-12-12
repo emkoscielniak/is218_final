@@ -19,8 +19,7 @@ async function setUserAvatar() {
         
         if (response.ok) {
             const user = await response.json();
-            const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
-            document.getElementById('userAvatar').textContent = initials.toUpperCase() || 'U';
+            document.getElementById('navUsername').textContent = user.username;
         }
     } catch (error) {
         console.error('Error loading user info:', error);
@@ -418,18 +417,18 @@ async function handleAddPet(e) {
 
 // Setup navbar
 function setupNavbar() {
-    const userAvatar = document.getElementById('userAvatar');
+    const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
     
-    if (userAvatar && userDropdown) {
-        userAvatar.addEventListener('click', (e) => {
+    if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            userDropdown.classList.toggle('show');
+            userDropdown.classList.toggle('hidden');
         });
         
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.user-menu')) {
-                userDropdown.classList.remove('show');
+            if (!userMenuBtn.contains(e.target)) {
+                userDropdown.classList.add('hidden');
             }
         });
     }

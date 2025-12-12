@@ -28,8 +28,7 @@ async function setUserAvatar() {
         
         if (response.ok) {
             const user = await response.json();
-            const initials = (user.firstName?.[0] || '') + (user.lastName?.[0] || '');
-            document.getElementById('userAvatar').textContent = initials.toUpperCase() || 'U';
+            document.getElementById('navUsername').textContent = user.username;
             
             // Update welcome message with first name
             const welcomeText = document.querySelector('.welcome-text');
@@ -1189,79 +1188,22 @@ async function deleteReminder(id) {
 
 // Setup navbar functionality
 function setupNavbar() {
-    // User dropdown toggle
-    const userAvatar = document.getElementById('userAvatar');
+    const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
     
-    if (userAvatar && userDropdown) {
-        userAvatar.addEventListener('click', (e) => {
+    if (userMenuBtn && userDropdown) {
+        userMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            userDropdown.classList.toggle('show');
+            userDropdown.classList.toggle('hidden');
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.user-menu')) {
-                userDropdown.classList.remove('show');
+            if (!userMenuBtn.contains(e.target)) {
+                userDropdown.classList.add('hidden');
             }
         });
     }
     
-    // Dashboard link
-    const navDashboard = document.getElementById('navDashboard');
-    if (navDashboard) {
-        navDashboard.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/dashboard';
-        });
-    }
-    
-    // My Pets - go to pets page
-    const navMyPets = document.getElementById('navMyPets');
-    if (navMyPets) {
-        navMyPets.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/pets-page';
-        });
-    }
-    
-    // Appointments - go to appointments page
-    const navAppointments = document.getElementById('navAppointments');
-    if (navAppointments) {
-        navAppointments.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/appointments';
-        });
-    }
-    
-    // Health Records - go to reports page
-    const navHealthRecords = document.getElementById('navHealthRecords');
-    if (navHealthRecords) {
-        navHealthRecords.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/reports';
-        });
-    }
-    
-    // Profile link
-    const viewProfile = document.getElementById('viewProfile');
-    if (viewProfile) {
-        viewProfile.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/profile';
-        });
-    }
-    
-    // Settings link
-    const settingsLink = document.getElementById('settingsLink');
-    if (settingsLink) {
-        settingsLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = '/settings';
-        });
-    }
-    
-    // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
