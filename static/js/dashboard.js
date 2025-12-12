@@ -153,6 +153,34 @@ modal.addEventListener('click', (e) => {
 });
 
 // Add pet form submission
+// Breed type toggle handler
+document.getElementById('petBreedType')?.addEventListener('change', (e) => {
+    const breedType = e.target.value;
+    const primaryGroup = document.getElementById('breedPrimaryGroup');
+    const secondaryGroup = document.getElementById('breedSecondaryGroup');
+    const tertiaryGroup = document.getElementById('breedTertiaryGroup');
+    
+    if (breedType === 'purebred') {
+        primaryGroup.style.display = 'block';
+        secondaryGroup.style.display = 'none';
+        tertiaryGroup.style.display = 'none';
+        document.getElementById('petBreed').required = true;
+        document.getElementById('petBreedSecondary').required = false;
+    } else if (breedType === 'mix') {
+        primaryGroup.style.display = 'block';
+        secondaryGroup.style.display = 'block';
+        tertiaryGroup.style.display = 'block';
+        document.getElementById('petBreed').required = true;
+        document.getElementById('petBreedSecondary').required = true;
+    } else {
+        primaryGroup.style.display = 'none';
+        secondaryGroup.style.display = 'none';
+        tertiaryGroup.style.display = 'none';
+        document.getElementById('petBreed').required = false;
+        document.getElementById('petBreedSecondary').required = false;
+    }
+});
+
 document.getElementById('addPetForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -162,7 +190,12 @@ document.getElementById('addPetForm').addEventListener('submit', async (e) => {
     const petData = {
         name: document.getElementById('petName').value,
         species: document.getElementById('petSpecies').value,
+        sex: document.getElementById('petSex').value || null,
+        birthday: document.getElementById('petBirthday').value || null,
+        breed_type: document.getElementById('petBreedType').value || null,
         breed: document.getElementById('petBreed').value || null,
+        breed_secondary: document.getElementById('petBreedSecondary').value || null,
+        breed_tertiary: document.getElementById('petBreedTertiary').value || null,
         age: parseInt(document.getElementById('petAge').value) || null,
         weight: parseFloat(document.getElementById('petWeight').value) || null,
         medical_notes: document.getElementById('petMedicalNotes').value || null
