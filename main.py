@@ -757,13 +757,53 @@ async def create_activity(
     db: Session = Depends(get_db)
 ):
     """
-    Create a new activity for a pet.
+    Create a new activity for a pet. AI automatically categorizes and extracts details from the description.
     """
     try:
         # Verify pet belongs to user
         pet = db.query(Pet).filter(Pet.id == activity.pet_id, Pet.user_id == current_user.id).first()
         if not pet:
             raise HTTPException(status_code=404, detail="Pet not found")
+        
+        # Use AI to parse and categorize the activity description
+        if openai_client and activity.description:
+            try:
+                response = openai_client.chat.completions.create(
+                    model=settings.AI_MODEL,
+                    messages=[
+                        {"role": "system", "content": """You are an expert pet activity analyzer. Given a description of a pet activity, extract and return a JSON object with:
+- activity_type: one of (walk, feeding, medication, vet_visit, grooming, play, training, other)
+- title: a brief title (max 50 chars)
+- duration: estimated duration in minutes (if mentioned or can be inferred, null otherwise)
+- distance: distance in miles (for walks, if mentioned, null otherwise)
+- notes: any additional relevant notes or details
+
+Return ONLY valid JSON, no markdown or explanation."""},
+                        {"role": "user", "content": f"Pet: {pet.name} ({pet.species})\nActivity Description: {activity.description}"}
+                    ],
+                    temperature=0.3
+                )
+                
+                import json
+                ai_data = json.loads(response.choices[0].message.content)
+                
+                # Update activity with AI-extracted data
+                activity.activity_type = ai_data.get("activity_type", "other")
+                activity.title = ai_data.get("title", activity.description[:50])
+                activity.duration = ai_data.get("duration")
+                activity.distance = ai_data.get("distance")
+                activity.notes = ai_data.get("notes")
+                
+                logger.info(f"AI parsed activity: {ai_data}")
+            except Exception as e:
+                logger.error(f"AI parsing error: {str(e)}")
+                # Fallback to defaults if AI fails
+                activity.activity_type = "other"
+                activity.title = activity.description[:50]
+        else:
+            # No AI available - use defaults
+            activity.activity_type = "other"
+            activity.title = activity.description[:50]
         
         # Create activity
         new_activity = Activity(**activity.model_dump())
@@ -810,6 +850,92 @@ async def get_activities(
         raise
     except Exception as e:
         logger.error(f"Get activities error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/activities/sorted/ai")
+async def get_activities_sorted_by_ai(
+    pet_id: int = None,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get activities sorted and categorized by AI based on their content and patterns.
+    Returns activities grouped by type with AI-generated insights.
+    """
+    try:
+        # Get user's pet IDs
+        user_pet_ids = [pet.id for pet in current_user.pets]
+        
+        query = db.query(Activity).filter(Activity.pet_id.in_(user_pet_ids))
+        
+        if pet_id:
+            if pet_id not in user_pet_ids:
+                raise HTTPException(status_code=404, detail="Pet not found")
+            query = query.filter(Activity.pet_id == pet_id)
+        
+        activities = query.order_by(Activity.activity_date.desc()).all()
+        
+        if not activities:
+            return {"categories": {}, "insights": "No activities logged yet."}
+        
+        # Use AI to sort and categorize activities
+        if openai_client:
+            try:
+                activities_summary = "\n".join([
+                    f"- {a.activity_date.strftime('%Y-%m-%d %H:%M')}: {a.description} (Type: {a.activity_type or 'unknown'})"
+                    for a in activities[:50]  # Limit to 50 most recent
+                ])
+                
+                response = openai_client.chat.completions.create(
+                    model=settings.AI_MODEL,
+                    messages=[
+                        {"role": "system", "content": """You are a pet activity analyst. Given a list of pet activities, provide:
+1. Group them by category (walks, meals, medical, play, grooming, training, other)
+2. Identify patterns (e.g., "walks usually in morning", "fed twice daily")
+3. Provide insights about the pet's routine and care
+Return JSON with: {"categories": {}, "patterns": [], "insights": ""}"""},
+                        {"role": "user", "content": f"Activities:\n{activities_summary}"}
+                    ],
+                    temperature=0.5
+                )
+                
+                import json
+                ai_analysis = json.loads(response.choices[0].message.content)
+                
+                # Group activities by AI-determined category
+                categorized = {}
+                for activity in activities:
+                    cat = activity.activity_type or "other"
+                    if cat not in categorized:
+                        categorized[cat] = []
+                    categorized[cat].append(ActivityRead.model_validate(activity))
+                
+                return {
+                    "categories": categorized,
+                    "patterns": ai_analysis.get("patterns", []),
+                    "insights": ai_analysis.get("insights", "")
+                }
+            except Exception as e:
+                logger.error(f"AI sorting error: {str(e)}")
+                # Fallback to simple grouping
+                pass
+        
+        # Fallback: simple category grouping
+        categorized = {}
+        for activity in activities:
+            cat = activity.activity_type or "other"
+            if cat not in categorized:
+                categorized[cat] = []
+            categorized[cat].append(ActivityRead.model_validate(activity))
+        
+        return {
+            "categories": categorized,
+            "insights": "AI analysis not available"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get sorted activities error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/activities/{id}", response_model=ActivityRead)
