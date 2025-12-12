@@ -1248,7 +1248,7 @@ function setupNavbar() {
     if (viewProfile) {
         viewProfile.addEventListener('click', (e) => {
             e.preventDefault();
-            alert('Profile page coming soon!');
+            window.location.href = '/profile';
         });
     }
     
@@ -1257,7 +1257,7 @@ function setupNavbar() {
     if (settingsLink) {
         settingsLink.addEventListener('click', (e) => {
             e.preventDefault();
-            alert('Settings page coming soon!');
+            window.location.href = '/settings';
         });
     }
     

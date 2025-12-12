@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - PetWell</title>
+    <link rel="stylesheet" href="/static/styles/dashboard.css?v=9">
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <i class="fas fa-paw"></i>
+            <span>PetWell</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="/pets-page"><i class="fas fa-dog"></i> My Pets</a>
+            <a href="/appointments"><i class="fas fa-calendar-check"></i> Appointments</a>
+            <a href="/reports"><i class="fas fa-chart-line"></i> Reports</a>
+        </div>
+        <div class="nav-user">
+            <button class="user-btn" id="userMenuBtn">
+                <i class="fas fa-user-circle"></i>
+                <span id="navUsername">User</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="user-dropdown hidden" id="userDropdown">
+                <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                <a href="/settings" class="active"><i class="fas fa-cog"></i> Settings</a>
+                <hr>
+                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Settings Page Container -->
+    <div class="settings-page-container">
+        <div class="settings-header">
+            <h1><i class="fas fa-cog"></i> Settings</h1>
+            <p>Manage your preferences and application settings</p>
+        </div>
+
+        <div class="settings-content">
+            <!-- Notification Settings -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h2><i class="fas fa-bell"></i> Notifications</h2>
+                </div>
+                <div class="settings-card-body">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Email Notifications</h3>
+                            <p>Receive email reminders for appointments and medications</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Appointment Reminders</h3>
+                            <p>Get notified 24 hours before upcoming appointments</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="appointmentReminders" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Medication Alerts</h3>
+                            <p>Receive alerts when it's time to give medications</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="medicationAlerts" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data & Privacy -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h2><i class="fas fa-shield-alt"></i> Data & Privacy</h2>
+                </div>
+                <div class="settings-card-body">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Export Your Data</h3>
+                            <p>Download all your pet records and activity data</p>
+                        </div>
+                        <button class="btn-secondary" id="exportDataBtn">
+                            <i class="fas fa-download"></i> Export Data
+                        </button>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>AI Chat History</h3>
+                            <p>Allow saving chat conversations with PetCare AI Assistant</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="saveChatHistory">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant Settings -->
+            <div class="settings-card">
+                <div class="settings-card-header">
+                    <h2><i class="fas fa-robot"></i> AI Assistant</h2>
+                </div>
+                <div class="settings-card-body">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Response Detail Level</h3>
+                            <p>Choose how detailed AI responses should be</p>
+                        </div>
+                        <select id="aiDetailLevel" class="settings-select">
+                            <option value="concise">Concise</option>
+                            <option value="balanced" selected>Balanced</option>
+                            <option value="detailed">Detailed</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Include Pet Context</h3>
+                            <p>Automatically share pet information with AI assistant</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="includePetContext" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-card danger-zone">
+                <div class="settings-card-header">
+                    <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
+                </div>
+                <div class="settings-card-body">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h3>Delete Account</h3>
+                            <p>Permanently delete your account and all associated data</p>
+                        </div>
+                        <button class="btn-danger" id="deleteAccountBtn">
+                            <i class="fas fa-trash"></i> Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal hidden" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirm Action</h2>
+                <button class="close-modal" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelConfirmBtn">Cancel</button>
+                <button class="btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+            <div id="confirmFeedback"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/settings.js"></script>
+    <script src="/static/js/vet-chat.js"></script>
+
+    <!-- PetCare AI Assistant Button -->
+    <button class="vet-chat-btn" id="vetChatBtn" title="PetCare AI Assistant">
+        <i class="fas fa-user-md"></i>
+    </button>
+
+    <!-- PetCare AI Assistant Modal -->
+    <div class="vet-chat-modal hidden" id="vetChatModal">
+        <div class="vet-chat-container">
+            <div class="vet-chat-header">
+                <h3><i class="fas fa-user-md"></i> PetCare AI Assistant</h3>
+                <button class="vet-chat-close" id="closeChatBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="vet-chat-messages" id="chatMessages">
+                <div class="vet-message">
+                    <div class="vet-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="vet-message-content">
+                        <p>Hello! I'm your AI veterinary assistant. I can help answer questions about your pets' health, behavior, and care. I have access to your pet profiles and can provide guidance based on their information.</p>
+                        <p class="disclaimer">⚠️ <strong>Disclaimer:</strong> I provide general guidance only. For emergencies or serious concerns, please contact your veterinarian immediately.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="vet-chat-input-area">
+                <textarea id="chatInput" placeholder="Ask about your pet's health, behavior, symptoms..." rows="2"></textarea>
+                <button id="sendChatBtn" class="btn-send-chat">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

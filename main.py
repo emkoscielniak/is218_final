@@ -104,6 +104,20 @@ async def appointments_page(request: Request):
     """
     return templates.TemplateResponse("appointments.html", {"request": request})
 
+@app.get("/profile")
+async def profile_page(request: Request):
+    """
+    Serve the user profile page.
+    """
+    return templates.TemplateResponse("profile.html", {"request": request})
+
+@app.get("/settings")
+async def settings_page(request: Request):
+    """
+    Serve the settings page.
+    """
+    return templates.TemplateResponse("settings.html", {"request": request})
+
 @app.get("/register")
 async def register_page(request: Request):
     """
@@ -234,6 +248,82 @@ async def read_users_me(
     Get current user information.
     """
     return UserResponse.model_validate(current_user)
+
+@app.put("/users/me", response_model=UserResponse)
+async def update_user_profile(
+    user_update: UserCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update current user's profile information.
+    """
+    try:
+        # Check if email is being changed and if it's already taken
+        if user_update.email != current_user.email:
+            existing_user = db.query(User).filter(
+                User.email == user_update.email,
+                User.id != current_user.id
+            ).first()
+            if existing_user:
+                raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Update user fields
+        current_user.first_name = user_update.firstName
+        current_user.last_name = user_update.lastName
+        current_user.email = user_update.email
+        
+        db.commit()
+        db.refresh(current_user)
+        
+        logger.info(f"User profile updated: {current_user.username}")
+        return UserResponse.model_validate(current_user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update profile error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update profile")
+
+class ChangePasswordRequest(BaseModel):
+    currentPassword: str
+    newPassword: str
+
+@app.post("/users/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Change user's password.
+    """
+    try:
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        
+        # Verify current password
+        if not pwd_context.verify(password_data.currentPassword, current_user.password_hash):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        
+        # Validate new password
+        if len(password_data.newPassword) < 6:
+            raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+        
+        # Update password
+        current_user.password_hash = pwd_context.hash(password_data.newPassword)
+        db.commit()
+        
+        logger.info(f"Password changed for user: {current_user.username}")
+        return {"message": "Password changed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Change password error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to change password")
 
 # Pet BREAD endpoints
 @app.get("/pets", response_model=List[PetRead])

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - PetWell</title>
+    <link rel="stylesheet" href="/static/styles/dashboard.css?v=9">
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <i class="fas fa-paw"></i>
+            <span>PetWell</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="/pets-page"><i class="fas fa-dog"></i> My Pets</a>
+            <a href="/appointments"><i class="fas fa-calendar-check"></i> Appointments</a>
+            <a href="/reports"><i class="fas fa-chart-line"></i> Reports</a>
+        </div>
+        <div class="nav-user">
+            <button class="user-btn" id="userMenuBtn">
+                <i class="fas fa-user-circle"></i>
+                <span id="navUsername">User</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="user-dropdown hidden" id="userDropdown">
+                <a href="/profile" class="active"><i class="fas fa-user"></i> Profile</a>
+                <a href="#" id="settingsLink"><i class="fas fa-cog"></i> Settings</a>
+                <hr>
+                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Page Container -->
+    <div class="profile-page-container">
+        <div class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-avatar-large">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="profile-header-info">
+                    <h1 id="profileFullName">Loading...</h1>
+                    <p id="profileUsername">@username</p>
+                    <p class="profile-member-since">Member since <span id="memberSince">...</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <!-- Account Information Card -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2><i class="fas fa-user"></i> Account Information</h2>
+                    <button class="btn-edit" id="editProfileBtn">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                </div>
+                <div class="profile-card-body">
+                    <div class="profile-info-grid">
+                        <div class="profile-info-item">
+                            <label>First Name</label>
+                            <p id="displayFirstName">-</p>
+                        </div>
+                        <div class="profile-info-item">
+                            <label>Last Name</label>
+                            <p id="displayLastName">-</p>
+                        </div>
+                        <div class="profile-info-item">
+                            <label>Username</label>
+                            <p id="displayUsername">-</p>
+                        </div>
+                        <div class="profile-info-item">
+                            <label>Email Address</label>
+                            <p id="displayEmail">-</p>
+                        </div>
+                        <div class="profile-info-item">
+                            <label>Account Status</label>
+                            <p id="displayStatus"><span class="status-badge status-active">Active</span></p>
+                        </div>
+                        <div class="profile-info-item">
+                            <label>Last Login</label>
+                            <p id="displayLastLogin">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pet Statistics Card -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Your Pet Care Stats</h2>
+                </div>
+                <div class="profile-card-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(126,150,128,0.2);">
+                                <i class="fas fa-paw" style="color: #7E9680;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="statPets">0</h3>
+                                <p>Total Pets</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(216,127,129,0.2);">
+                                <i class="fas fa-running" style="color: #D87F81;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="statActivities">0</h3>
+                                <p>Activities Logged</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(174,99,120,0.2);">
+                                <i class="fas fa-pills" style="color: #AE6378;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="statMedications">0</h3>
+                                <p>Active Medications</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: rgba(234,181,149,0.2);">
+                                <i class="fas fa-calendar-check" style="color: #EAB595;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="statReminders">0</h3>
+                                <p>Upcoming Reminders</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Card -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h2><i class="fas fa-shield-alt"></i> Security</h2>
+                </div>
+                <div class="profile-card-body">
+                    <div class="security-section">
+                        <div class="security-item">
+                            <div class="security-info">
+                                <h3>Password</h3>
+                                <p>Last changed: Never</p>
+                            </div>
+                            <button class="btn-secondary" id="changePasswordBtn">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal hidden" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="close-modal" id="closeEditModal">&times;</button>
+            </div>
+            <form id="editProfileForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editFirstName">First Name</label>
+                        <input type="text" id="editFirstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastName">Last Name</label>
+                        <input type="text" id="editLastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email Address</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" disabled>
+                    <small>Username cannot be changed</small>
+                </div>
+                <button type="submit" class="btn-primary btn-block">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+            <div id="editMessage"></div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal hidden" id="changePasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <button class="close-modal" id="closePasswordModal">&times;</button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" required minlength="6">
+                    <small>Must be at least 6 characters</small>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn-primary btn-block">
+                    <i class="fas fa-key"></i> Update Password
+                </button>
+            </form>
+            <div id="passwordMessage"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/profile.js"></script>
+    <script src="/static/js/vet-chat.js"></script>
+
+    <!-- PetCare AI Assistant Button -->
+    <button class="vet-chat-btn" id="vetChatBtn" title="PetCare AI Assistant">
+        <i class="fas fa-user-md"></i>
+    </button>
+
+    <!-- PetCare AI Assistant Modal -->
+    <div class="vet-chat-modal hidden" id="vetChatModal">
+        <div class="vet-chat-container">
+            <div class="vet-chat-header">
+                <h3><i class="fas fa-user-md"></i> PetCare AI Assistant</h3>
+                <button class="vet-chat-close" id="closeChatBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="vet-chat-messages" id="chatMessages">
+                <div class="vet-message">
+                    <div class="vet-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div class="vet-message-content">
+                        <p>Hello! I'm your AI veterinary assistant. I can help answer questions about your pets' health, behavior, and care. I have access to your pet profiles and can provide guidance based on their information.</p>
+                        <p class="disclaimer">⚠️ <strong>Disclaimer:</strong> I provide general guidance only. For emergencies or serious concerns, please contact your veterinarian immediately.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="vet-chat-input-area">
+                <textarea id="chatInput" placeholder="Ask about your pet's health, behavior, symptoms..." rows="2"></textarea>
+                <button id="sendChatBtn" class="btn-send-chat">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
