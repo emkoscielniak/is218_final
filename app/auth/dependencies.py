@@ -12,8 +12,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
-) -> UserResponse:
-    """Dependency to get current user from JWT token."""
+) -> User:
+    """Dependency to get current user from JWT token - returns ORM model."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -28,12 +28,12 @@ def get_current_user(
     if user is None:
         raise credentials_exception
         
-    return UserResponse.model_validate(user)  # Updated from from_orm
+    return user  # Return ORM model, not Pydantic model
 
 def get_current_active_user(
-    current_user: UserResponse = Depends(get_current_user)
-) -> UserResponse:
-    """Dependency to get current active user."""
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """Dependency to get current active user - returns ORM model."""
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

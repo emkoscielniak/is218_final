@@ -1,9 +1,54 @@
+# Python virtual environment
 venv/
+env/
+ENV/
+.venv/
+
+# Python cache files
 __pycache__/
-*.pyc
-.DS_Store
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
 .coverage
-.pytest_cache
+.pytest_cache/
 htmlcov/
+.tox/
+.hypothesis/
+*.cover
+
+# Environment variables - SECURITY CRITICAL
 .env
+.env.local
+.env.*.local
+*.env
+
+# Database files - DO NOT COMMIT
+*.db
+*.sqlite
+*.sqlite3
 test.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Docker volumes (if needed)
+# postgres_data/
+

@@ -90,12 +90,19 @@ async def reports(request: Request):
     """
     return templates.TemplateResponse("reports.html", {"request": request})
 
-@app.get("/pets")
+@app.get("/pets-page")
 async def pets_page(request: Request):
     """
     Serve the pets management page.
     """
     return templates.TemplateResponse("pets.html", {"request": request})
+
+@app.get("/appointments")
+async def appointments_page(request: Request):
+    """
+    Serve the appointments management page.
+    """
+    return templates.TemplateResponse("appointments.html", {"request": request})
 
 @app.get("/register")
 async def register_page(request: Request):
@@ -221,12 +228,12 @@ async def login_user_json(
 
 @app.get("/users/me", response_model=UserResponse)
 async def read_users_me(
-    current_user: UserResponse = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Get current user information.
     """
-    return current_user
+    return UserResponse.model_validate(current_user)
 
 # Pet BREAD endpoints
 @app.get("/pets", response_model=List[PetRead])

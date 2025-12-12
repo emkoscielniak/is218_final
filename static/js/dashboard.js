@@ -1240,16 +1240,16 @@ function setupNavbar() {
     if (navMyPets) {
         navMyPets.addEventListener('click', (e) => {
             e.preventDefault();
-            window.location.href = '/pets';
+            window.location.href = '/pets-page';
         });
     }
     
-    // Appointments - show appointments modal/filter
+    // Appointments - go to appointments page
     const navAppointments = document.getElementById('navAppointments');
     if (navAppointments) {
-        navAppointments.addEventListener('click', async (e) => {
+        navAppointments.addEventListener('click', (e) => {
             e.preventDefault();
-            await showAppointmentsView();
+            window.location.href = '/appointments';
         });
     }
     
@@ -1259,14 +1259,6 @@ function setupNavbar() {
         navHealthRecords.addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = '/reports';
-        });
-    }
-    
-    // Notifications button
-    const notificationBtn = document.getElementById('notificationBtn');
-    if (notificationBtn) {
-        notificationBtn.addEventListener('click', () => {
-            showNotifications();
         });
     }
     
