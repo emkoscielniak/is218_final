@@ -322,14 +322,11 @@ async function loadUpcomingEvents() {
     
     try {
         // Fetch all data sources in parallel
-        const [remindersRes, medicationsRes, activitiesRes, petsRes] = await Promise.all([
+        const [remindersRes, medicationsRes, petsRes] = await Promise.all([
             fetch('/reminders?completed=false', {
                 headers: { 'Authorization': `Bearer ${token}` }
             }),
             fetch('/medications?active_only=true', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            }),
-            fetch('/activities', {
                 headers: { 'Authorization': `Bearer ${token}` }
             }),
             fetch('/pets', {
@@ -339,7 +336,6 @@ async function loadUpcomingEvents() {
         
         const reminders = remindersRes.ok ? await remindersRes.json() : [];
         const medications = medicationsRes.ok ? await medicationsRes.json() : [];
-        const activities = activitiesRes.ok ? await activitiesRes.json() : [];
         const pets = petsRes.ok ? await petsRes.json() : [];
         
         // Create pet lookup map
@@ -387,21 +383,6 @@ async function loadUpcomingEvents() {
                     petName: petMap[med.pet_id],
                     description: `${med.frequency} • ${med.route}`,
                     icon: '<i class="fas fa-pills"></i>'
-                });
-            }
-        });
-        
-        // Add future activities
-        activities.forEach(activity => {
-            const date = new Date(activity.activity_date);
-            if (date > now) {
-                events.push({
-                    date: date,
-                    type: activity.activity_type,
-                    title: activity.title,
-                    petName: petMap[activity.pet_id],
-                    description: activity.description,
-                    icon: getActivityTypeIcon(activity.activity_type)
                 });
             }
         });
