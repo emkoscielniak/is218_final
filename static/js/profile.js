@@ -38,42 +38,15 @@ async function loadProfile() {
 // Display profile information
 function displayProfile(user) {
     // Header
-    document.getElementById('profileFullName').textContent = `${user.firstName} ${user.lastName}`;
+    document.getElementById('profileFullName').textContent = `${user.first_name} ${user.last_name}`;
     document.getElementById('profileUsername').textContent = `@${user.username}`;
     document.getElementById('navUsername').textContent = user.username;
     
-    // Member since
-    const memberDate = new Date(user.createdAt);
-    document.getElementById('memberSince').textContent = memberDate.toLocaleDateString('en-US', { 
-        month: 'long', 
-        year: 'numeric' 
-    });
-    
     // Account information
-    document.getElementById('displayFirstName').textContent = user.firstName;
-    document.getElementById('displayLastName').textContent = user.lastName;
+    document.getElementById('displayFirstName').textContent = user.first_name;
+    document.getElementById('displayLastName').textContent = user.last_name;
     document.getElementById('displayUsername').textContent = user.username;
     document.getElementById('displayEmail').textContent = user.email;
-    
-    // Status
-    const statusBadge = user.isActive ? 
-        '<span class="status-badge status-active"><i class="fas fa-check-circle"></i> Active</span>' :
-        '<span class="status-badge status-inactive"><i class="fas fa-times-circle"></i> Inactive</span>';
-    document.getElementById('displayStatus').innerHTML = statusBadge;
-    
-    // Last login
-    if (user.lastLogin) {
-        const lastLogin = new Date(user.lastLogin);
-        document.getElementById('displayLastLogin').textContent = lastLogin.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-        });
-    } else {
-        document.getElementById('displayLastLogin').textContent = 'Never';
-    }
 }
 
 // Load statistics
@@ -116,8 +89,8 @@ async function loadStats() {
 function openEditModal() {
     if (!currentUser) return;
     
-    document.getElementById('editFirstName').value = currentUser.firstName;
-    document.getElementById('editLastName').value = currentUser.lastName;
+    document.getElementById('editFirstName').value = currentUser.first_name;
+    document.getElementById('editLastName').value = currentUser.last_name;
     document.getElementById('editEmail').value = currentUser.email;
     document.getElementById('editUsername').value = currentUser.username;
     
@@ -129,9 +102,11 @@ async function handleEditProfile(e) {
     e.preventDefault();
     
     const formData = {
-        firstName: document.getElementById('editFirstName').value.trim(),
-        lastName: document.getElementById('editLastName').value.trim(),
-        email: document.getElementById('editEmail').value.trim()
+        first_name: document.getElementById('editFirstName').value.trim(),
+        last_name: document.getElementById('editLastName').value.trim(),
+        email: document.getElementById('editEmail').value.trim(),
+        username: document.getElementById('editUsername').value.trim(),
+        password: document.getElementById('editPassword').value || 'placeholder123'  // Backend requires password field
     };
     
     try {

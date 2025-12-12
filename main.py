@@ -332,9 +332,10 @@ async def update_user_profile(
                 raise HTTPException(status_code=400, detail="Email already registered")
         
         # Update user fields
-        current_user.first_name = user_update.firstName
-        current_user.last_name = user_update.lastName
+        current_user.first_name = user_update.first_name
+        current_user.last_name = user_update.last_name
         current_user.email = user_update.email
+        current_user.username = user_update.username
         
         db.commit()
         db.refresh(current_user)
