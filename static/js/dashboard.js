@@ -649,27 +649,21 @@ async function handleLogActivity(e) {
     
     const messageDiv = document.getElementById('activityMessage');
     const petId = document.getElementById('activityPet').value;
-    const activityType = document.getElementById('activityType').value;
-    const title = document.getElementById('activityTitle').value;
-    const duration = document.getElementById('activityDuration').value;
-    const distance = document.getElementById('activityDistance').value;
     const activityDate = document.getElementById('activityDate').value;
     const description = document.getElementById('activityDescription').value;
-    const notes = document.getElementById('activityNotes').value;
+    
+    if (!description.trim()) {
+        messageDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Please describe the activity</div>';
+        messageDiv.style.display = 'block';
+        return;
+    }
     
     try {
         const activityData = {
             pet_id: parseInt(petId),
-            activity_type: activityType,
-            title: title,
-            activity_date: new Date(activityDate).toISOString()
+            activity_date: new Date(activityDate).toISOString(),
+            description: description.trim()
         };
-        
-        // Add optional fields
-        if (duration) activityData.duration = parseInt(duration);
-        if (distance) activityData.distance = parseFloat(distance);
-        if (description) activityData.description = description;
-        if (notes) activityData.notes = notes;
         
         const response = await fetch('/activities', {
             method: 'POST',
@@ -687,8 +681,16 @@ async function handleLogActivity(e) {
         
         const activity = await response.json();
         
-        // Show success message
-        messageDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Activity logged successfully!</div>';
+        // Show success message with AI-extracted details
+        let successMsg = '<div class="success-message"><i class="fas fa-check-circle"></i> Activity logged successfully!';
+        if (activity.activity_type) {
+            successMsg += `<br><small>AI categorized as: <strong>${activity.activity_type}</strong></small>`;
+        }
+        if (activity.title) {
+            successMsg += `<br><small>Title: ${activity.title}</small>`;
+        }
+        successMsg += '</div>';
+        messageDiv.innerHTML = successMsg;
         messageDiv.style.display = 'block';
         
         // Reset form

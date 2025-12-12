@@ -237,44 +237,13 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="activityType">Activity Type *</label>
-                    <select id="activityType" required>
-                        <option value="">Select type...</option>
-                        <option value="walk">🚶 Walk</option>
-                        <option value="feeding">🍽️ Feeding</option>
-                        <option value="medication">💊 Medication</option>
-                        <option value="vet_visit">🏥 Vet Visit</option>
-                        <option value="grooming">✂️ Grooming</option>
-                        <option value="play">🎾 Play Time</option>
-                        <option value="training">🎓 Training</option>
-                        <option value="other">📋 Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="activityTitle">Title *</label>
-                    <input type="text" id="activityTitle" placeholder="e.g., Morning walk in the park" required>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="activityDuration">Duration (minutes)</label>
-                        <input type="number" id="activityDuration" min="0" placeholder="e.g., 30">
-                    </div>
-                    <div class="form-group">
-                        <label for="activityDistance">Distance (miles)</label>
-                        <input type="number" id="activityDistance" min="0" step="0.1" placeholder="e.g., 1.5">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="activityDate">Date & Time</label>
+                    <label for="activityDate">Date & Time *</label>
                     <input type="datetime-local" id="activityDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="activityDescription">Description</label>
-                    <textarea id="activityDescription" placeholder="Brief description of the activity..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="activityNotes">Notes</label>
-                    <textarea id="activityNotes" placeholder="Any additional notes or observations..."></textarea>
+                    <label for="activityDescription">What happened? *</label>
+                    <textarea id="activityDescription" placeholder="Describe the activity... (e.g., 'Took Buddy for a 30 minute walk in the park' or 'Fed breakfast - 2 cups of kibble' or 'Annual checkup at the vet')" rows="4" required></textarea>
+                    <small style="color: #666; font-size: 0.9em;">💡 AI will automatically categorize this and extract details like duration, distance, etc.</small>
                 </div>
                 <button type="submit" class="btn-primary btn-block"><i class="fas fa-save"></i> Log Activity</button>
             </form>
