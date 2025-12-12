@@ -1329,7 +1329,7 @@ body {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Appointments Modal */
@@ -1474,5 +1474,287 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Ask the Vet Chatbot Button */
+.vet-chat-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 120px;
+    height: 120px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(174, 99, 120, 0.3);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.vet-chat-btn i {
+    font-size: 3rem;
+    color: white;
+}
+
+.vet-chat-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 24px rgba(174, 99, 120, 0.4);
+    background: #9a5168;
+}
+
+.vet-chat-btn:active {
+    transform: scale(0.95);
+}
+
+/* Vet Chatbot Modal */
+.vet-chat-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(121, 97, 111, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.vet-chat-modal.hidden {
+    display: none !important;
+}
+
+.vet-chat-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease;
+}
+
+.vet-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--border-color);
+    background: var(--primary-color);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.vet-chat-header h3 {
+    font-family: 'Bubblegum Sans', cursive;
+    color: white;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.vet-chat-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+}
+
+.vet-chat-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.vet-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vet-message, .user-message {
+    display: flex;
+    gap: 12px;
+    animation: slideUp 0.3s ease;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.vet-avatar, .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.user-avatar {
+    background: var(--accent-color);
+}
+
+.vet-message-content, .user-message-content {
+    flex: 1;
+    background: white;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.user-message-content {
+    background: var(--bg-peach);
+}
+
+.vet-message-content p, .user-message-content p {
+    margin: 0 0 8px 0;
+    line-height: 1.6;
+}
+
+.vet-message-content p:last-child, .user-message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.disclaimer {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    font-style: italic;
+    margin-top: 12px !important;
+    padding: 8px;
+    background: rgba(216, 127, 129, 0.1);
+    border-radius: 8px;
+}
+
+.vet-message-content strong {
+    color: var(--text-dark);
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 12px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+.vet-chat-input-area {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 2px solid var(--border-color);
+    background: white;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.vet-chat-input-area textarea {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    resize: none;
+    transition: border-color 0.2s ease;
+}
+
+.vet-chat-input-area textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.btn-send-chat {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-send-chat:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.btn-send-chat:active {
+    transform: scale(0.95);
+}
+
+.btn-send-chat:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .vet-chat-container {
+        max-height: 90vh;
+        max-width: 100%;
+    }
+    
+    .vet-chat-header h3 {
+        font-size: 1.2rem;
+    }
+    
+    .vet-avatar, .user-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
     }
 }

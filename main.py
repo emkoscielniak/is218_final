@@ -974,6 +974,118 @@ async def delete_reminder(
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
+# ============================================================
+# VET CHATBOT ENDPOINT
+# ============================================================
+
+class ChatMessage(BaseModel):
+    message: str
+    conversation_history: List[dict] = []
+    pets: List[dict] = []
+
+@app.post("/chat/vet")
+async def chat_with_vet(
+    chat_data: ChatMessage,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    AI-powered veterinary chatbot that provides guidance based on user's pet data.
+    """
+    try:
+        if not openai_client:
+            raise HTTPException(
+                status_code=503, 
+                detail="AI service is currently unavailable. Please try again later."
+            )
+        
+        # Build context from user's pets
+        pets_context = ""
+        if chat_data.pets:
+            pets_context = "\n\n**User's Pets:**\n"
+            for pet in chat_data.pets:
+                pets_context += f"- {pet.get('name', 'Unknown')}: {pet.get('species', 'unknown')} "
+                if pet.get('breed'):
+                    pets_context += f"({pet.get('breed')}) "
+                if pet.get('age'):
+                    pets_context += f"- Age: {pet.get('age')} years "
+                if pet.get('weight'):
+                    pets_context += f"- Weight: {pet.get('weight')} lbs "
+                if pet.get('medical_notes'):
+                    pets_context += f"\n  Medical Notes: {pet.get('medical_notes')}"
+                pets_context += "\n"
+        
+        # System prompt
+        system_prompt = f"""You are an experienced, caring veterinary assistant helping pet owners understand their pets' health and behavior. 
+
+**Your role:**
+- Provide helpful, evidence-based guidance on pet health, behavior, nutrition, and general care
+- Use the user's pet information to give personalized advice
+- Identify potential health concerns and suggest when veterinary attention is needed
+- Be warm, empathetic, and supportive
+- Always prioritize pet safety and wellbeing
+
+**Important guidelines:**
+- ALWAYS include a disclaimer that you're providing general guidance only, not a diagnosis
+- For serious symptoms or emergencies, STRONGLY recommend immediate veterinary care
+- Never recommend specific medications or dosages - that requires a vet examination
+- Be clear about red flags that require urgent vet attention (difficulty breathing, seizures, severe pain, bleeding, toxic ingestion, etc.)
+- Acknowledge when something is beyond your scope and needs professional assessment
+
+**Red flags requiring immediate vet care:**
+- Difficulty breathing or choking
+- Severe bleeding or injury
+- Seizures or collapse
+- Suspected poisoning or toxic ingestion
+- Severe vomiting or diarrhea (especially with blood)
+- Inability to urinate or defecate
+- Extreme lethargy or unresponsiveness
+- Severe pain or distress
+- Bloated, hard abdomen (especially in dogs - can be life-threatening)
+
+{pets_context}
+
+Keep responses clear, organized, and helpful. Use bullet points when appropriate. Always be kind and understanding - pet owners are often worried about their companions."""
+
+        # Build messages for OpenAI
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history
+        for msg in chat_data.conversation_history[-6:]:  # Last 3 exchanges
+            messages.append({
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", "")
+            })
+        
+        # Add current message
+        messages.append({
+            "role": "user",
+            "content": chat_data.message
+        })
+        
+        # Get AI response
+        response = openai_client.chat.completions.create(
+            model=settings.AI_MODEL,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=800
+        )
+        
+        ai_response = response.choices[0].message.content
+        
+        logger.info(f"Vet chat - User: {current_user.username}, Message length: {len(chat_data.message)}, Response length: {len(ai_response)}")
+        
+        return {"response": ai_response}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Vet chat error: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="I'm having trouble processing your question right now. Please try again."
+        )
+
 @app.get("/health")
 async def health_check():
     """
