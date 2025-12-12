@@ -62,7 +62,7 @@
                         <p>Health analytics</p>
                     </div>
                 </div>
-                <div class="action-card">
+                <div class="action-card" id="findVetBtn">
                     <div class="action-icon"><i class="fas fa-hospital"></i></div>
                     <div class="action-content">
                         <h3>Find Vet</h3>
@@ -236,6 +236,41 @@
                 <button type="submit" class="btn-primary btn-block"><i class="fas fa-save"></i> Log Activity</button>
             </form>
             <div id="activityMessage"></div>
+        </div>
+    </div>
+
+    <!-- Find Vet Modal -->
+    <div id="findVetModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-hospital"></i> Find Veterinary Clinics</h3>
+                <button class="close-btn" id="closeVetModal">&times;</button>
+            </div>
+            <div class="vet-search-container">
+                <div class="search-form">
+                    <div class="search-input-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="vetLocation" placeholder="Enter city, state, or zip code (e.g., Jersey City, NJ)" />
+                        <button class="btn-primary" id="searchVetsBtn">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    <div class="search-filters">
+                        <label class="filter-option">
+                            <input type="checkbox" id="emergencyOnly" />
+                            <span>Emergency Services Only</span>
+                        </label>
+                        <label class="filter-option">
+                            <input type="checkbox" id="openNow" />
+                            <span>Open Now</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="vetSearchMessage" class="search-message"></div>
+                <div id="vetResults" class="vet-results">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
         </div>
     </div>
 

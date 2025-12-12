@@ -418,6 +418,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addMedicationForm) {
         addMedicationForm.addEventListener('submit', handleAddMedication);
     }
+    
+    // Find Vet button click handler
+    const findVetBtn = document.getElementById('findVetBtn');
+    if (findVetBtn) {
+        findVetBtn.addEventListener('click', openFindVetModal);
+    }
+    
+    // Close vet modal
+    const closeVetModal = document.getElementById('closeVetModal');
+    if (closeVetModal) {
+        closeVetModal.addEventListener('click', () => {
+            document.getElementById('findVetModal').classList.add('hidden');
+        });
+    }
+    
+    // Search vets button
+    const searchVetsBtn = document.getElementById('searchVetsBtn');
+    if (searchVetsBtn) {
+        searchVetsBtn.addEventListener('click', searchVets);
+    }
+    
+    // Enter key to search
+    const vetLocationInput = document.getElementById('vetLocation');
+    if (vetLocationInput) {
+        vetLocationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchVets();
+            }
+        });
+    }
 });
 
 // Open log activity modal
@@ -621,3 +651,205 @@ async function handleAddMedication(e) {
         messageDiv.style.display = 'block';
     }
 }
+
+// Open find vet modal
+function openFindVetModal() {
+    const modal = document.getElementById('findVetModal');
+    const resultsDiv = document.getElementById('vetResults');
+    const messageDiv = document.getElementById('vetSearchMessage');
+    
+    // Clear previous results and messages
+    resultsDiv.innerHTML = `
+        <div class="empty-vet-state">
+            <i class="fas fa-map-marked-alt"></i>
+            <h4>Find Veterinary Clinics Near You</h4>
+            <p>Enter a location to search for veterinary clinics, emergency care, and pet hospitals</p>
+        </div>
+    `;
+    messageDiv.innerHTML = '';
+    messageDiv.style.display = 'none';
+    document.getElementById('vetLocation').value = '';
+    document.getElementById('emergencyOnly').checked = false;
+    document.getElementById('openNow').checked = false;
+    
+    modal.classList.remove('hidden');
+}
+
+// Search for vets
+async function searchVets() {
+    const location = document.getElementById('vetLocation').value.trim();
+    const emergencyOnly = document.getElementById('emergencyOnly').checked;
+    const openNow = document.getElementById('openNow').checked;
+    const resultsDiv = document.getElementById('vetResults');
+    const messageDiv = document.getElementById('vetSearchMessage');
+    
+    if (!location) {
+        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a location';
+        messageDiv.className = 'search-message error';
+        messageDiv.style.display = 'block';
+        return;
+    }
+    
+    // Show loading state
+    messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching for veterinary clinics...';
+    messageDiv.className = 'search-message loading';
+    messageDiv.style.display = 'block';
+    resultsDiv.innerHTML = '';
+    
+    try {
+        // Simulate API call with mock data
+        // In production, this would call Google Places API or similar
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockVets = generateMockVets(location, emergencyOnly, openNow);
+        
+        messageDiv.style.display = 'none';
+        displayVetResults(mockVets);
+        
+    } catch (error) {
+        console.error('Error searching vets:', error);
+        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error searching for clinics. Please try again.';
+        messageDiv.className = 'search-message error';
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Generate mock vet data (replace with real API in production)
+function generateMockVets(location, emergencyOnly, openNow) {
+    const currentHour = new Date().getHours();
+    const isBusinessHours = currentHour >= 8 && currentHour < 18;
+    
+    // Parse location to extract city name
+    const locationParts = location.split(',');
+    const cityName = locationParts[0].trim();
+    
+    // Generate area code based on location (simple hash for consistency)
+    const areaCode = 200 + (cityName.charCodeAt(0) % 800);
+    
+    // Vet name prefixes and types for variety
+    const namePatterns = [
+        `${cityName} Veterinary Hospital`,
+        `${cityName} Animal Clinic`,
+        `${cityName} Pet Care Center`,
+        `${cityName} Emergency Animal Hospital`,
+        `${cityName} Veterinary Services`,
+        `All Pets Veterinary - ${cityName}`,
+        `Advanced Animal Hospital of ${cityName}`,
+        `${cityName} Mobile Vet Service`
+    ];
+    
+    const streetNames = ['Main Street', 'Oak Avenue', 'Elm Boulevard', 'Washington Street', 
+                        'Park Avenue', 'Maple Drive', 'Central Avenue', 'River Road',
+                        'Highland Avenue', 'Broadway', 'Market Street', 'Grove Street'];
+    
+    const scheduleTypes = [
+        { hours: '24/7 Emergency Services Available', isEmergency: true, extendedHours: true },
+        { hours: 'Mon-Fri: 8AM-6PM, Sat: 9AM-3PM', isEmergency: false, extendedHours: false },
+        { hours: 'Open 24 Hours', isEmergency: true, extendedHours: true },
+        { hours: 'Mon-Sat: 9AM-7PM, Sun: Closed', isEmergency: false, extendedHours: false },
+        { hours: 'Extended Hours: 7AM-10PM Daily', isEmergency: true, extendedHours: true },
+        { hours: 'Mon-Fri: 7AM-9PM, Sat-Sun: 8AM-6PM', isEmergency: false, extendedHours: true },
+        { hours: 'Mon-Thu: 8AM-6PM, Fri: 8AM-8PM, Sat: 9AM-5PM', isEmergency: false, extendedHours: false },
+        { hours: 'Daily: 8AM-8PM', isEmergency: false, extendedHours: true }
+    ];
+    
+    // Generate 6-8 vets for the location
+    const vetCount = 6 + Math.floor(Math.random() * 3);
+    const vets = [];
+    
+    for (let i = 0; i < vetCount; i++) {
+        const schedule = scheduleTypes[i % scheduleTypes.length];
+        const streetNumber = 100 + Math.floor(Math.random() * 900);
+        const streetName = streetNames[i % streetNames.length];
+        
+        // Determine if currently open based on schedule
+        let isOpen = isBusinessHours;
+        if (schedule.extendedHours) {
+            isOpen = currentHour >= 7 && currentHour < 22;
+        }
+        if (schedule.isEmergency && schedule.hours.includes('24')) {
+            isOpen = true; // 24/7 is always open
+        }
+        
+        vets.push({
+            name: namePatterns[i % namePatterns.length],
+            address: `${streetNumber} ${streetName}, ${location}`,
+            phone: `(${areaCode}) ${500 + i}55-0${100 + i * 111}`,
+            rating: 4.3 + Math.random() * 0.7, // 4.3 to 5.0
+            reviewCount: 50 + Math.floor(Math.random() * 400),
+            isOpen: isOpen,
+            isEmergency: schedule.isEmergency,
+            hours: schedule.hours,
+            distance: (0.3 + i * 0.5 + Math.random() * 0.3).toFixed(1) + ' miles'
+        });
+    }
+    
+    // Sort by distance
+    vets.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+    
+    // Apply filters
+    let filteredVets = vets;
+    
+    if (emergencyOnly) {
+        filteredVets = filteredVets.filter(v => v.isEmergency);
+    }
+    
+    if (openNow) {
+        filteredVets = filteredVets.filter(v => v.isOpen);
+    }
+    
+    return filteredVets;
+}
+
+// Display vet results
+function displayVetResults(vets) {
+    const resultsDiv = document.getElementById('vetResults');
+    
+    if (vets.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="empty-vet-state">
+                <i class="fas fa-search"></i>
+                <h4>No Clinics Found</h4>
+                <p>Try adjusting your filters or searching a different location</p>
+            </div>
+        `;
+        return;
+    }
+    
+    resultsDiv.innerHTML = vets.map(vet => `
+        <div class="vet-card">
+            <div class="vet-header">
+                <div class="vet-title">
+                    <h4>${vet.name}</h4>
+                    <div class="vet-rating">
+                        <i class="fas fa-star"></i>
+                        <span>${vet.rating} (${vet.reviewCount} reviews)</span>
+                    </div>
+                </div>
+                <div class="vet-status">
+                    ${vet.isEmergency ? '<span class="status-pill emergency">24/7</span>' : ''}
+                    <span class="status-pill ${vet.isOpen ? 'open' : 'closed'}">
+                        ${vet.isOpen ? 'Open Now' : 'Closed'}
+                    </span>
+                </div>
+            </div>
+            <div class="vet-details">
+                <p><i class="fas fa-map-marker-alt"></i> ${vet.address} <span style="opacity: 0.6;">(${vet.distance})</span></p>
+                <p><i class="fas fa-phone"></i> ${vet.phone}</p>
+                <p><i class="fas fa-clock"></i> ${vet.hours}</p>
+            </div>
+            <div class="vet-actions">
+                <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vet.address)}', '_blank')">
+                    <i class="fas fa-directions"></i> Get Directions
+                </button>
+                <button onclick="window.location.href='tel:${vet.phone.replace(/[^0-9]/g, '')}'">
+                    <i class="fas fa-phone"></i> Call Now
+                </button>
+                <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(vet.name + ' ' + vet.address)}', '_blank')">
+                    <i class="fas fa-info-circle"></i> More Info
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
