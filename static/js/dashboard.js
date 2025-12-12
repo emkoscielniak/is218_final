@@ -448,6 +448,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // Add Reminder button click handler
+    const addReminderBtn = document.querySelector('.add-reminder-btn');
+    if (addReminderBtn) {
+        addReminderBtn.addEventListener('click', openAddReminderModal);
+    }
+    
+    // Close reminder modal
+    const closeReminderModal = document.getElementById('closeReminderModal');
+    if (closeReminderModal) {
+        closeReminderModal.addEventListener('click', () => {
+            document.getElementById('addReminderModal').classList.add('hidden');
+        });
+    }
+    
+    // Add reminder form submit
+    const addReminderForm = document.getElementById('addReminderForm');
+    if (addReminderForm) {
+        addReminderForm.addEventListener('submit', handleAddReminder);
+    }
 });
 
 // Open log activity modal
@@ -853,3 +873,235 @@ function displayVetResults(vets) {
     `).join('');
 }
 
+// Load reminders
+async function loadReminders() {
+    try {
+        const response = await fetch('/reminders?completed=false', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const reminders = await response.json();
+            displayReminders(reminders);
+        }
+    } catch (error) {
+        console.error('Error loading reminders:', error);
+    }
+}
+
+// Display reminders
+function displayReminders(reminders) {
+    const remindersList = document.getElementById('reminders');
+    
+    if (!reminders || reminders.length === 0) {
+        remindersList.innerHTML = '<p class="no-data">No upcoming reminders</p>';
+        return;
+    }
+    
+    // Sort by date and get next 5
+    const sortedReminders = reminders
+        .sort((a, b) => new Date(a.reminder_date) - new Date(b.reminder_date))
+        .slice(0, 5);
+    
+    remindersList.innerHTML = sortedReminders.map(reminder => {
+        const date = new Date(reminder.reminder_date);
+        const now = new Date();
+        const isOverdue = date < now;
+        const isToday = date.toDateString() === now.toDateString();
+        
+        return `
+            <div class="reminder-item ${isOverdue ? 'overdue' : ''} ${isToday ? 'today' : ''}">
+                <div class="reminder-icon">
+                    ${getReminderIcon(reminder.reminder_type)}
+                </div>
+                <div class="reminder-content">
+                    <div class="reminder-title">${reminder.title}</div>
+                    <div class="reminder-date">${formatReminderDate(date)}</div>
+                </div>
+                <div class="reminder-actions">
+                    <button class="complete-btn" onclick="completeReminder(${reminder.id})" title="Mark as complete">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="delete-btn" onclick="deleteReminder(${reminder.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Get reminder icon based on type
+function getReminderIcon(type) {
+    const iconMap = {
+        'medication': '<i class="fas fa-pills"></i>',
+        'appointment': '<i class="fas fa-calendar-check"></i>',
+        'vaccination': '<i class="fas fa-syringe"></i>',
+        'grooming': '<i class="fas fa-cut"></i>',
+        'other': '<i class="fas fa-bell"></i>'
+    };
+    return iconMap[type] || '<i class="fas fa-bell"></i>';
+}
+
+// Format reminder date
+function formatReminderDate(date) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const reminderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    
+    if (reminderDay.getTime() === today.getTime()) {
+        return `Today at ${timeStr}`;
+    } else if (reminderDay.getTime() === tomorrow.getTime()) {
+        return `Tomorrow at ${timeStr}`;
+    } else if (date < now) {
+        return `Overdue - ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeStr}`;
+    } else {
+        return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeStr}`;
+    }
+}
+
+// Open add reminder modal
+async function openAddReminderModal() {
+    const modal = document.getElementById('addReminderModal');
+    const petSelect = document.getElementById('reminderPet');
+    const messageDiv = document.getElementById('reminderMessage');
+    
+    // Clear form
+    document.getElementById('addReminderForm').reset();
+    messageDiv.innerHTML = '';
+    messageDiv.style.display = 'none';
+    
+    // Load pets for dropdown
+    try {
+        const response = await fetch('/pets', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const pets = await response.json();
+            petSelect.innerHTML = '<option value="">Select a pet (or leave blank for general reminder)</option>' +
+                pets.map(pet => `<option value="${pet.id}">${pet.name}</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error loading pets:', error);
+    }
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reminderDate').setAttribute('min', today);
+    
+    modal.classList.remove('hidden');
+}
+
+// Handle add reminder form submission
+async function handleAddReminder(e) {
+    e.preventDefault();
+    
+    const petId = document.getElementById('reminderPet').value;
+    const title = document.getElementById('reminderTitle').value;
+    const type = document.getElementById('reminderType').value;
+    const date = document.getElementById('reminderDate').value;
+    const time = document.getElementById('reminderTime').value;
+    const description = document.getElementById('reminderDescription').value;
+    const messageDiv = document.getElementById('reminderMessage');
+    
+    if (!title || !type || !date || !time) {
+        messageDiv.innerHTML = '<div class="error-message"><i class="fas fa-exclamation-circle"></i> Please fill in all required fields</div>';
+        messageDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const reminderData = {
+            title: title,
+            reminder_type: type,
+            reminder_date: `${date}T${time}:00`,
+            is_completed: false
+        };
+        
+        if (petId) reminderData.pet_id = parseInt(petId);
+        if (description) reminderData.description = description;
+        
+        const response = await fetch('/reminders', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reminderData)
+        });
+        
+        if (response.ok) {
+            messageDiv.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Reminder added successfully!</div>';
+            messageDiv.style.display = 'block';
+            
+            // Reload reminders
+            await loadReminders();
+            
+            // Close modal after 2 seconds
+            setTimeout(() => {
+                document.getElementById('addReminderModal').classList.add('hidden');
+                messageDiv.innerHTML = '';
+                messageDiv.style.display = 'none';
+            }, 2000);
+        } else {
+            const error = await response.json();
+            messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.detail}</div>`;
+            messageDiv.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error adding reminder:', error);
+        messageDiv.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${error.message}</div>`;
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Complete a reminder
+async function completeReminder(id) {
+    try {
+        const response = await fetch(`/reminders/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_completed: true })
+        });
+        
+        if (response.ok) {
+            await loadReminders();
+        }
+    } catch (error) {
+        console.error('Error completing reminder:', error);
+    }
+}
+
+// Delete a reminder
+async function deleteReminder(id) {
+    if (!confirm('Are you sure you want to delete this reminder?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/reminders/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            await loadReminders();
+        }
+    } catch (error) {
+        console.error('Error deleting reminder:', error);
+    }
+}

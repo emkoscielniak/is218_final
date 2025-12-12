@@ -349,6 +349,55 @@
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js?v=11"></script>
+    <!-- Add Reminder Modal -->
+    <div id="addReminderModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bell"></i> Add Reminder</h3>
+                <button class="close-btn" id="closeReminderModal">&times;</button>
+            </div>
+            <form id="addReminderForm">
+                <div class="form-group">
+                    <label for="reminderPet">Pet (Optional)</label>
+                    <select id="reminderPet">
+                        <option value="">Select a pet (or leave blank for general reminder)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reminderTitle">Title *</label>
+                    <input type="text" id="reminderTitle" placeholder="e.g., Vet Appointment" required>
+                </div>
+                <div class="form-group">
+                    <label for="reminderType">Reminder Type *</label>
+                    <select id="reminderType" required>
+                        <option value="">Select type</option>
+                        <option value="medication">Medication</option>
+                        <option value="appointment">Appointment</option>
+                        <option value="vaccination">Vaccination</option>
+                        <option value="grooming">Grooming</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reminderDate">Date *</label>
+                        <input type="date" id="reminderDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminderTime">Time *</label>
+                        <input type="time" id="reminderTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reminderDescription">Description</label>
+                    <textarea id="reminderDescription" placeholder="Additional details about this reminder..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary btn-block"><i class="fas fa-bell"></i> Add Reminder</button>
+            </form>
+            <div id="reminderMessage"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js?v=12"></script>
 </body>
 </html>

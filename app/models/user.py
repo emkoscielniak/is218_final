@@ -39,6 +39,9 @@ class User(Base):
 
     # Relationship to pets
     pets = relationship("Pet", back_populates="user", cascade="all, delete-orphan")
+    
+    # Relationship to reminders
+    reminders = relationship("Reminder", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(name={self.first_name} {self.last_name}, email={self.email})>"

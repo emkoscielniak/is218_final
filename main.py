@@ -13,11 +13,13 @@ from app.models.user import User
 from app.models.pet import Pet
 from app.models.activity import Activity
 from app.models.medication import Medication
+from app.models.reminder import Reminder
 from app.schemas.base import UserCreate, UserRead
 from app.schemas.user import UserResponse, Token, UserLogin
 from app.schemas.pet import PetCreate, PetRead, PetUpdate
 from app.schemas.activity import ActivityCreate, ActivityRead, ActivityUpdate
 from app.schemas.medication import MedicationCreate, MedicationRead, MedicationUpdate
+from app.schemas.reminder import ReminderCreate, ReminderRead, ReminderUpdate
 from app.auth.dependencies import get_current_user, get_current_active_user
 from typing import List
 import uvicorn
@@ -800,6 +802,161 @@ async def delete_medication(
         raise
     except Exception as e:
         logger.error(f"Delete medication error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+# Reminder Endpoints
+
+@app.post("/reminders", response_model=ReminderRead)
+async def create_reminder(
+    reminder: ReminderCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new reminder for the authenticated user.
+    """
+    try:
+        # If pet_id provided, verify user owns the pet
+        if reminder.pet_id:
+            pet = db.query(Pet).filter(Pet.id == reminder.pet_id, Pet.user_id == current_user.id).first()
+            if not pet:
+                raise HTTPException(status_code=404, detail="Pet not found or doesn't belong to user")
+        
+        db_reminder = Reminder(
+            user_id=current_user.id,
+            **reminder.dict()
+        )
+        db.add(db_reminder)
+        db.commit()
+        db.refresh(db_reminder)
+        
+        logger.info(f"Reminder created: {db_reminder.id} for user {current_user.id}")
+        return db_reminder
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create reminder error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/reminders", response_model=List[ReminderRead])
+async def get_reminders(
+    completed: bool = None,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all reminders for the authenticated user.
+    Optional filter: completed (true/false)
+    """
+    try:
+        query = db.query(Reminder).filter(Reminder.user_id == current_user.id)
+        
+        if completed is not None:
+            query = query.filter(Reminder.is_completed == completed)
+        
+        reminders = query.order_by(Reminder.reminder_date).all()
+        logger.info(f"Retrieved {len(reminders)} reminders for user {current_user.id}")
+        return reminders
+    except Exception as e:
+        logger.error(f"Get reminders error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/reminders/{id}", response_model=ReminderRead)
+async def get_reminder(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific reminder by ID.
+    """
+    try:
+        reminder = db.query(Reminder).filter(
+            Reminder.id == id,
+            Reminder.user_id == current_user.id
+        ).first()
+        
+        if not reminder:
+            raise HTTPException(status_code=404, detail="Reminder not found")
+        
+        return reminder
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get reminder error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.put("/reminders/{id}", response_model=ReminderRead)
+async def update_reminder(
+    id: int,
+    reminder_update: ReminderUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update a reminder.
+    """
+    try:
+        reminder = db.query(Reminder).filter(
+            Reminder.id == id,
+            Reminder.user_id == current_user.id
+        ).first()
+        
+        if not reminder:
+            raise HTTPException(status_code=404, detail="Reminder not found")
+        
+        # If pet_id is being updated, verify user owns the pet
+        if reminder_update.pet_id is not None:
+            pet = db.query(Pet).filter(Pet.id == reminder_update.pet_id, Pet.user_id == current_user.id).first()
+            if not pet:
+                raise HTTPException(status_code=404, detail="Pet not found or doesn't belong to user")
+        
+        # Update fields
+        update_data = reminder_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(reminder, field, value)
+        
+        db.commit()
+        db.refresh(reminder)
+        
+        logger.info(f"Reminder updated: {id}")
+        return reminder
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update reminder error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.delete("/reminders/{id}")
+async def delete_reminder(
+    id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a reminder.
+    """
+    try:
+        reminder = db.query(Reminder).filter(
+            Reminder.id == id,
+            Reminder.user_id == current_user.id
+        ).first()
+        
+        if not reminder:
+            raise HTTPException(status_code=404, detail="Reminder not found")
+        
+        db.delete(reminder)
+        db.commit()
+        
+        logger.info(f"Reminder deleted: {id}")
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete reminder error: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Internal server error")
 
