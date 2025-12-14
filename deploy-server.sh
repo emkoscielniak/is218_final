@@ -67,7 +67,7 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
     ports:
-      - "8000:8000"
+      - "8001:8000"  # Using 8001 to avoid conflict with existing sites
     depends_on:
       - db
     labels:

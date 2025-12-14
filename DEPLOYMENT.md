@@ -113,7 +113,7 @@ sudo nano /etc/caddy/Caddyfile
 ```caddyfile
 # PetWell Application
 petwell.emkoscielniak.com {
-    reverse_proxy localhost:8000
+    reverse_proxy localhost:8001
 }
 
 # Redirect www to apex
