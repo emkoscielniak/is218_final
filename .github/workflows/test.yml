@@ -66,7 +66,7 @@ jobs:
           
           # 2) Try running core test suites with graceful failure for CI purposes
           echo "Attempting unit tests..."
-          pytest tests/unit/test_calculator.py -v || echo "Calculator unit tests completed with issues"
+          pytest tests/unit/ -v || echo "Unit tests completed with issues"
           
           echo "Attempting integration tests..."
           pytest tests/integration/ --tb=short || echo "Integration tests completed with issues"

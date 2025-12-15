@@ -1,9 +1,8 @@
 
 services:
-services:
   web:
     build: .
-    container_name: fastapi_calculator
+    container_name: petwell-app
     ports:
       - "8000:8000"
     volumes:
