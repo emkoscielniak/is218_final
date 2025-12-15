@@ -1,5 +1,5 @@
-version: '3.8'
 
+services:
 services:
   web:
     image: ${DOCKER_IMAGE:-emkoscielniak/pet_well}:latest

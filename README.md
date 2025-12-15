@@ -1,21 +1,22 @@
-# FastAPI Calculator with JWT Authentication, BREAD Operations & Frontend
+# PetWell - Comprehensive Pet Health Management Platform
 
-A comprehensive FastAPI application featuring JWT-based user authentication, complete BREAD (Browse, Read, Edit, Add, Delete) operations for calculations, and an interactive web interface. Built with SQLAlchemy ORM, Pydantic validation, client-side JavaScript validation, and deployed via Docker Hub with complete CI/CD pipeline including Playwright E2E testing.
+**🌐 Live Demo:** [petwell.emkoscielniak.com](https://petwell.emkoscielniak.com)
+
+A comprehensive FastAPI application for managing pet health, tracking medications, scheduling activities, and setting reminders. Features JWT-based user authentication, email verification, AI-powered veterinary Q&A chatbot, and an intuitive web interface. Built with SQLAlchemy ORM, Pydantic validation, OpenAI integration, and deployed via Docker Hub with complete CI/CD pipeline.
 
 ## 🎯 Features
 
 - **JWT Authentication**: Secure user registration and login with JWT tokens
-- **BREAD Operations**: Complete Create, Read, Update, Delete operations for user calculations
-- **Interactive Frontend**: Full-featured web interface for managing calculations
-- **User-Specific Data**: All calculations are user-specific and properly isolated
-- **Frontend Pages**: Complete HTML pages for registration, login, and calculation management
+- **Email Verification**: SMTP-based email verification for new user accounts
+- **Pet Management**: Add, edit, and manage multiple pets with detailed profiles (breed, age, weight, health score)
+- **Medication Tracking**: Create and manage medication schedules for your pets
+- **Activity Tracking**: Log and monitor pet activities (walks, playtime, vet visits)
+- **Reminder System**: Set up reminders for medications, vet appointments, and activities
+- **AI Vet Chatbot**: Ask veterinary questions powered by OpenAI GPT-4o-mini
+- **Interactive Dashboard**: Real-time health score visualization and pet overview
+- **User-Specific Data**: All pets, medications, and activities are private to the authenticated user
 - **Password Security**: Bcrypt hashing with complex password requirements
-- **Client-side Validation**: Email format validation, password strength checks, and form validation
-- **Token Management**: JWT token storage in localStorage and automatic authentication
-- **Basic Calculator**: Real-time arithmetic operations (add, subtract, multiply, divide)
-- **Calculation Management**: Create, view, edit, and delete saved calculations
 - **Database Integration**: SQLAlchemy ORM with PostgreSQL support
-- **E2E Testing**: Comprehensive Playwright tests for all BREAD operations and authentication flows
 - **CI/CD Pipeline**: Automated testing, security scanning, and Docker Hub deployment
 - **OpenAPI Documentation**: Interactive API documentation with Swagger UI
 
@@ -25,7 +26,7 @@ A comprehensive FastAPI application featuring JWT-based user authentication, com
 
 ```bash
 # Pull and run the latest image from Docker Hub
-docker run -p 8000:8000 emkoscielniak/module13_is218:latest
+docker run -p 8000:8000 emkoscielniak/pet_well:latest
 ```
 
 ### Local Development
@@ -33,7 +34,7 @@ docker run -p 8000:8000 emkoscielniak/module13_is218:latest
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd module13_is218
+cd is218_final
 
 # Set up virtual environment
 python -m venv venv
@@ -42,8 +43,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up database (PostgreSQL required)
-export DATABASE_URL="postgresql://user:password@localhost:5432/your_db"
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your database credentials, OpenAI API key, and SMTP settings
 
 # Run the application
 python main.py
@@ -53,71 +55,105 @@ The application will be available at `http://localhost:8000`
 
 ## 🌐 Frontend Pages
 
+### Landing Page (`/`)
+- **URL**: `http://localhost:8000/`
+- **Features**:
+  - Introduction to PetWell platform
+  - Overview of pet health management features
+  - Call-to-action for registration/login
+
 ### Registration Page (`/register`)
 - **URL**: `http://localhost:8000/register`
 - **Features**:
-  - Fields: First Name, Last Name, Username, Email, Password, Confirm Password
-  - Client-side validation for email format and password requirements
-  - Password must be at least 6 characters with uppercase, lowercase, and digit
-  - Real-time feedback for validation errors
-  - Success message on successful registration
+  - Fields: First Name, Last Name, Email, Password, Confirm Password
+  - Email verification required
+  - Password requirements: minimum 6 characters with uppercase, lowercase, and digit
+  - Real-time validation feedback
+
+### Email Verification (`/verify-email`)
+- **URL**: `http://localhost:8000/verify-email?token=<token>`
+- **Features**:
+  - Automatic verification via email link
+  - Success/error feedback
+  - Redirect to login after verification
 
 ### Login Page (`/login`)
 - **URL**: `http://localhost:8000/login`
 - **Features**:
-  - Fields: Username/Email, Password
-  - Minimal client-side validation
-  - JWT token storage in localStorage on successful login
-  - Error handling for invalid credentials (401 responses)
-  - Automatic redirect to calculator after login
+  - Fields: Email, Password
+  - JWT token storage on successful login
+  - Automatic redirect to dashboard
 
-### Calculator & Calculation Manager (`/`)
-- **URL**: `http://localhost:8000/`
+### Dashboard (`/dashboard`)
+- **URL**: `http://localhost:8000/dashboard`
 - **Features**:
-  - **User Authentication**: Login/Register forms with client-side validation
-  - **Basic Calculator**: Real-time arithmetic operations with error handling
-  - **Calculation Management**: Complete BREAD operations interface
-    - **Browse**: View all your saved calculations with pagination
-    - **Read**: Search for specific calculations by ID
-    - **Edit**: Modify existing calculations with live result updates
-    - **Add**: Create new calculations and save them to your account
-    - **Delete**: Remove calculations with confirmation prompts
-  - **User-Specific Data**: All calculations are private to the authenticated user
-  - **Responsive Design**: Mobile-friendly interface with grid layout
-  - **Real-time Updates**: Automatic calculation of results when editing
-  - **Error Handling**: Comprehensive validation and error messaging
+  - Overview of all pets with health scores
+  - Quick access to medications, activities, and reminders
+  - Pet statistics and health trends
+  - AI Vet Chatbot for instant veterinary advice
+
+### Pet Management (`/pets`)
+- **URL**: `http://localhost:8000/pets`
+- **Features**:
+  - Add new pets with breed, age, weight, and health information
+  - Edit existing pet profiles
+  - Delete pets with confirmation
+  - View detailed pet health cards with breed mix display
+
+### Profile Settings (`/profile`)
+- **URL**: `http://localhost:8000/profile`
+- **Features**:
+  - Update personal information (first name, last name, email)
+  - Change password
+  - View account details
 
 ## 📋 API Endpoints
 
 ### Authentication Endpoints
-- `POST /users/register` - Register a new user with UserCreate schema
-- `POST /users/login` - Login with username/password, returns JWT token
+- `POST /users/register` - Register a new user with email verification
+- `POST /users/login` - Login with email/password, returns JWT token
 - `GET /users/me` - Get current authenticated user information
+- `GET /users/verify-email` - Verify email address with token
 
-### Calculation BREAD Operations (🔐 Authentication Required)
-- `GET /calculations` - Browse all user's calculations with pagination (skip, limit)
-- `GET /calculations/{id}` - Read a specific calculation by ID (user-specific)
-- `POST /calculations` - Add a new calculation using CalculationCreate schema
-- `PUT /calculations/{id}` - Edit/update an existing calculation (full update)
-- `PATCH /calculations/{id}` - Partially update an existing calculation
-- `DELETE /calculations/{id}` - Delete a calculation by ID (user-specific)
+### Pet Management Endpoints (🔐 Authentication Required)
+- `GET /pets` - Get all user's pets
+- `POST /pets` - Add a new pet
+- `GET /pets/{id}` - Get specific pet by ID
+- `PUT /pets/{id}` - Update pet information
+- `DELETE /pets/{id}` - Delete a pet
 
-**Note**: All calculation endpoints require JWT authentication via `Authorization: Bearer <token>` header. Users can only access their own calculations.
+### Medication Endpoints (🔐 Authentication Required)
+- `GET /medications` - Get all medications for user's pets
+- `POST /medications` - Add a new medication
+- `GET /medications/{id}` - Get specific medication by ID
+- `PUT /medications/{id}` - Update medication information
+- `DELETE /medications/{id}` - Delete a medication
 
-### Legacy Endpoints
-- `GET /` - Homepage with calculator interface
-- `POST /register` - Legacy user registration (redirects to /users/register)
-- `POST /login` - Legacy OAuth2 form login
-- `POST /login/json` - JSON login endpoint
-- `GET /health` - Health check endpoint
-- Calculator endpoints: `/add`, `/subtract`, `/multiply`, `/divide`
+### Activity Endpoints (🔐 Authentication Required)
+- `GET /activities` - Get all activities for user's pets
+- `POST /activities` - Log a new activity
+- `GET /activities/{id}` - Get specific activity by ID
+- `PUT /activities/{id}` - Update activity information
+- `DELETE /activities/{id}` - Delete an activity
+
+### Reminder Endpoints (🔐 Authentication Required)
+- `GET /reminders` - Get all reminders for user
+- `POST /reminders` - Create a new reminder
+- `GET /reminders/{id}` - Get specific reminder by ID
+- `PUT /reminders/{id}` - Update reminder information
+- `DELETE /reminders/{id}` - Delete a reminder
+
+### AI Chatbot Endpoint (🔐 Authentication Required)
+- `POST /chat` - Ask veterinary questions to AI chatbot
+
+**Note**: All endpoints require JWT authentication via `Authorization: Bearer <token>` header. Users can only access their own data.
 
 ## 🧪 Running Tests
 
 ### Prerequisites
 - Python 3.10+
 - PostgreSQL database
-- Playwright browsers installed
+- OpenAI API key (for chatbot tests)
 
 ### Setup Test Environment
 
@@ -125,97 +161,38 @@ The application will be available at `http://localhost:8000`
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Playwright browsers
-playwright install
-
 # Set up test database
-export DATABASE_URL="postgresql://user:password@localhost:5432/mytestdb"
+export DATABASE_URL="postgresql://user:password@localhost:5432/petwell_test"
+export OPENAI_API_KEY="your-openai-key"
 ```
 
-### Running Unit Tests
+### Running Tests
 
 ```bash
-# Run unit tests with coverage
-pytest tests/unit/ --cov=app --cov-report=html
+# Run all tests with coverage
+pytest tests/ --cov=app --cov-report=html
 
-# Run specific unit test modules
-pytest tests/unit/test_calculation_model.py -v
+# Run specific test modules
+pytest tests/unit/ -v
+pytest tests/integration/ -v
+pytest tests/e2e/ -v
 ```
 
-### Running Integration Tests
+### Test Coverage
 
-```bash
-# Run integration tests
-pytest tests/integration/ --tb=short -v
-
-# Run specific integration tests
-pytest tests/integration/test_user_auth.py -v
-```
-
-### Running Playwright E2E Tests
-
-```bash
-# Run all E2E tests (includes BREAD operations)
-pytest tests/e2e/ --tb=short -v
-
-# Run with headed browser (visible)
-pytest tests/e2e/ --headed -v
-
-# Run specific E2E test categories
-pytest tests/e2e/test_e2e.py::test_authentication_flow -v
-pytest tests/e2e/test_e2e.py::test_add_calculation_positive -v
-pytest tests/e2e/test_e2e.py::test_edit_calculation_positive -v
-pytest tests/e2e/test_e2e.py::test_delete_calculation_positive -v
-
-# Run negative test scenarios
-pytest tests/e2e/test_e2e.py::test_unauthorized_access -v
-pytest tests/e2e/test_e2e.py::test_divide_by_zero_calculation -v
-```
-
-### Testing BREAD Operations
-
-The E2E tests cover comprehensive scenarios for all BREAD operations:
-
-**Positive Scenarios**:
-- User authentication and authorization flow
-- Creating calculations with various operations (Add, Sub, Multiply, Divide)
-- Browsing and retrieving user-specific calculations
-- Editing existing calculations with proper result recalculation
-- Deleting calculations with confirmation
-
-**Negative Scenarios**:
-- Unauthorized access attempts (401 errors)
-- Invalid input validation (empty fields, invalid operations)
-- Division by zero error handling
-- Accessing non-existent calculations (404 errors)
-- Cross-user data access prevention
-
-### E2E Test Coverage
-
-The E2E tests cover:
-
-#### Positive Test Cases:
-- ✅ User registration with valid data (email format, password length)
-- ✅ User login with correct credentials
-- ✅ JWT token storage and success messages
-
-#### Negative Test Cases:
-- ❌ Registration with short password (< 6 characters)
-- ❌ Registration with invalid email format
-- ❌ Registration with mismatched passwords
-- ❌ Login with incorrect password (returns 401)
-- ❌ Login with nonexistent username (returns 401)
-
-### Running All Tests
-
-```bash
-# Run complete test suite
-pytest tests/ --cov=app --tb=short -v
-```
+The test suite covers:
+- User authentication and email verification
+- Pet CRUD operations
+- Medication tracking
+- Activity logging
+- Reminder management
+- AI chatbot functionality
+- Database integrity
+- Input validation and error handling
 
 ## 🚀 Docker Hub Repository
 
-**Repository**: [emkoscielniak/module13_is218](https://hub.docker.com/r/emkoscielniak/module13_is218)
+**Repository**: [emkoscielniak/pet_well](https://hub.docker.com/r/emkoscielniak/pet_well)
 
 ### Available Tags:
 - `latest` - Latest stable version
@@ -225,32 +202,40 @@ pytest tests/ --cov=app --tb=short -v
 
 ```bash
 # Pull latest version
-docker pull emkoscielniak/module13_is218:latest
+docker pull emkoscielniak/pet_well:latest
 
 # Pull specific version
-docker pull emkoscielniak/module13_is218:<commit-sha>
+docker pull emkoscielniak/pet_well:<commit-sha>
 ```
 
 ### Running with Docker Compose:
 
 ```yaml
-version: '3.8'
 services:
-  app:
-    image: emkoscielniak/module13_is218:latest
+  web:
+    image: emkoscielniak/pet_well:latest
+    restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydb
+      - DATABASE_URL=postgresql://user:password@db:5432/petwell
+      - SECRET_KEY=your-secret-key
+      - OPENAI_API_KEY=your-openai-key
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASSWORD=your-app-password
+      - SMTP_FROM_EMAIL=your-email@gmail.com
     depends_on:
       - db
   
   db:
     image: postgres:15
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=mydb
+      - POSTGRES_DB=petwell
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -267,7 +252,7 @@ The CI/CD pipeline automatically:
 1. **Testing Phase**:
    - Runs unit tests with coverage reporting
    - Runs integration tests against PostgreSQL
-   - Executes Playwright E2E tests in headless mode
+   - Validates API endpoints and authentication
 
 2. **Security Phase**:
    - Builds Docker image
@@ -278,45 +263,11 @@ The CI/CD pipeline automatically:
    - Builds multi-platform Docker image (linux/amd64, linux/arm64)
    - Pushes to Docker Hub with `latest` and `<commit-sha>` tags
    - Uses Docker layer caching for optimization
+   - Watchtower automatically pulls and deploys latest image
 
 ### Workflow Triggers:
 - Push to `main` branch
 - Pull requests to `main` branch
-
-## 🧪 Running Tests Locally (Detailed)
-
-### Prerequisites
-- PostgreSQL database running locally
-- Virtual environment activated with dependencies installed
-
-### Test Commands
-
-```bash
-# Run all tests with coverage
-pytest --cov=app --cov-report=html
-
-# Run only unit tests
-pytest tests/unit/ -v
-
-# Run only integration tests  
-pytest tests/integration/ -v
-
-# Run specific test file
-pytest tests/integration/test_user_registration_login.py -v
-pytest tests/integration/test_calculation_endpoints.py -v
-
-# Run tests with detailed output
-pytest tests/ -v --tb=short
-```
-
-### Test Categories
-
-- **Unit Tests**: Test individual components (password hashing, calculation factory, schema validation)
-- **Integration Tests**: Test complete API workflows with database integration
-  - User registration and login flows
-  - Calculation CRUD operations
-  - Input validation and error handling
-  - Database persistence and data integrity
 
 ## 🔍 Manual Testing via OpenAPI
 
@@ -324,60 +275,44 @@ Access the interactive API documentation at:
 - **Swagger UI**: http://localhost:8000/docs  
 - **ReDoc**: http://localhost:8000/redoc
 
-### Testing User Endpoints
-1. **Register a User**: Use `/users/register` with valid user data
-2. **Login**: Use `/users/login` to get an authentication token  
-3. **Access Protected Routes**: Use the "Authorize" button in Swagger UI with your token
-
-### Testing Calculation Endpoints  
-1. **Create Calculations**: Use `/calculations` POST with different operation types
-2. **Browse Calculations**: Use `/calculations` GET with pagination parameters
-3. **Update Calculations**: Use `/calculations/{id}` PUT to modify existing calculations
-4. **Validate Input**: Test invalid data (division by zero, invalid types) to verify error handling
-
-## 🐳 Docker Hub Repository
-
-**Docker Hub Link**: [https://hub.docker.com/r/emkoscielniak/module12_is218](https://hub.docker.com/r/emkoscielniak/module12_is218)
-
-The Docker image is automatically built and pushed via GitHub Actions on every successful test run on the main branch.
-- **E2E Tests**: End-to-end browser testing with Playwright
-
-## 🐳 Docker Hub Repository
-
-The application is automatically built and deployed to Docker Hub:
-
-**Repository**: [emkoscielniak/module10_is601](https://hub.docker.com/r/emkoscielniak/module10_is601)
-
-Available tags:
-- `latest` - Latest stable version
-- `<git-sha>` - Specific commit versions
-
-### Using Different Versions
-
-```bash
-# Latest version
-docker pull emkoscielniak/module10_is601:latest
-
-# Specific version
-docker pull emkoscielniak/module10_is601:<git-sha>
-```
+### Testing Workflow
+1. **Register a User**: Use `/users/register` endpoint
+2. **Verify Email**: Check email and click verification link
+3. **Login**: Use `/users/login` to get an authentication token  
+4. **Authorize**: Click "Authorize" button in Swagger UI and paste your token
+5. **Test Endpoints**: Try creating pets, medications, activities, and reminders
+6. **Test AI Chat**: Use `/chat` endpoint to ask veterinary questions
 
 ## 🛡️ Security Features
 
 - **Password Hashing**: bcrypt with salt for secure password storage
 - **JWT Tokens**: Secure authentication with configurable expiration
+- **Email Verification**: SMTP-based email verification for new accounts
 - **Input Validation**: Pydantic schemas prevent injection attacks
 - **Security Scanning**: Trivy vulnerability scanning in CI/CD
 - **Database**: PostgreSQL with proper ORM usage preventing SQL injection
+- **API Key Security**: Environment-based OpenAI API key management
 
 ## 🏗️ Architecture
 
 - **Framework**: FastAPI with async support
 - **Database**: PostgreSQL with SQLAlchemy ORM
 - **Authentication**: JWT with OAuth2 password bearer
+- **Email Service**: SMTP with Gmail integration
+- **AI Integration**: OpenAI GPT-4o-mini for veterinary Q&A
 - **Validation**: Pydantic v2 with custom validators
 - **Testing**: pytest with fixtures and dependency injection
-- **Deployment**: Docker with multi-stage builds
+- **Deployment**: Docker with multi-stage builds and Watchtower auto-updates
+
+## 🌟 Key Technologies
+
+- **Backend**: FastAPI, SQLAlchemy, Pydantic
+- **Database**: PostgreSQL
+- **AI**: OpenAI API (GPT-4o-mini)
+- **Email**: SMTP (Gmail)
+- **Frontend**: HTML, CSS, JavaScript
+- **Deployment**: Docker, Docker Compose, Caddy (reverse proxy)
+- **CI/CD**: GitHub Actions, Trivy, Watchtower
 
 ## 📦 Project Setup
 
